@@ -711,6 +711,49 @@ function sumLastNDays(dj,today,n){
 }
 const PERIOD_LABELS={month:"Mois en cours","7d":"7 derniers jours","30d":"30 derniers jours",ytd:"YTD"};
 
+// Indique si un jour (mois mm 1-12, jour 1-31) tombe dans la fenêtre demandée
+// par rapport à la date du jour (ramené à la même année calendaire que today)
+function inPeriod(mm,dayIdx,period,today){
+  if(!period||period==="ytd") return true;
+  const m=parseInt(mm,10)-1;
+  if(period==="month") return m===today.getMonth();
+  const n=period==="7d"?7:30;
+  // Compare sur le même millésime que today pour gérer N et N-1 uniformément
+  const d=new Date(today.getFullYear(),m,dayIdx+1);
+  const ref=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const diff=(ref-d)/(24*3600*1000);
+  return diff>=0 && diff<n;
+}
+
+// Filtre SIMU_DATA (rows {d:"dd/mm",b1,b2,b3}) sur la période
+function filterSimuByPeriod(rows,period,today){
+  if(!period||period==="ytd") return rows;
+  if(period==="month"){
+    const mm=String(today.getMonth()+1).padStart(2,"0");
+    return rows.filter(r=>r.d.endsWith("/"+mm));
+  }
+  const n=period==="7d"?7:30;
+  const ref=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  return rows.filter(r=>{
+    const [dd,mm]=r.d.split("/");
+    const d=new Date(today.getFullYear(),parseInt(mm,10)-1,parseInt(dd,10));
+    const diff=(ref-d)/(24*3600*1000);
+    return diff>=0 && diff<n;
+  });
+}
+
+// Estimateur CA condition-aware : utilise la moyenne du groupe pour soleil/nuageux,
+// et la régression pour pluie/neige où la quantité d'eau/neige module la prédiction.
+function estimateCAByCondition(forecast, groups, rainPairs, snowPairs){
+  const c=forecast.code;
+  const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):null;
+  if(c===0||c<=2) return avg(groups.sun);
+  if(c<=48) return avg(groups.cloud);
+  if(c!=null && ((c>=71&&c<=77)||c===85||c===86)) // neige
+    return groups.snow.length>=3?estimateCA(forecast.snow,snowPairs):avg(groups.snow);
+  return rainPairs.length>=3?estimateCA(forecast.rain,rainPairs):avg(groups.rain);
+}
+
 function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily,period}){
 const today=new Date(),mIdx=today.getMonth(),mKey=MONTHS[mIdx],mm=MM[mIdx],dd=today.getDate()-1;
 const caJN1=DJ_N1[mm]?.[dd]??null;
@@ -962,19 +1005,20 @@ return <div className="sh-stack">
 
 const isSnow=c=>c!=null&&((c>=71&&c<=77)||(c===85||c===86));
 const isRain=c=>c!=null&&!isSnow(c)&&c>=51;
-function VueMeteo({wxToday,wxForecast,wxHist,wxDaily}){
+function VueMeteo({wxToday,wxForecast,wxHist,wxDaily,period}){
+const today=useMemo(()=>new Date(),[]);
 const rainPairs=useMemo(()=>{
 const p=[];
-Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isRain(wx[i].code))p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
-Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isRain(wx[i].code))p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isRain(wx[i].code)&&inPeriod(mm,i,period,today))p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isRain(wx[i].code)&&inPeriod(mm,i,period,today))p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
 return p;
-},[wxDaily]);
+},[wxDaily,period,today]);
 const snowPairs=useMemo(()=>{
 const p=[];
-Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isSnow(wx[i].code))p.push({x:+(wx[i].snow||0).toFixed(1),y:ca});});});
-Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isSnow(wx[i].code))p.push({x:+(wx[i].snow||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isSnow(wx[i].code)&&inPeriod(mm,i,period,today))p.push({x:+(wx[i].snow||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isSnow(wx[i].code)&&inPeriod(mm,i,period,today))p.push({x:+(wx[i].snow||0).toFixed(1),y:ca});});});
 return p;
-},[wxDaily]);
+},[wxDaily,period,today]);
 const pairs=useMemo(()=>[...rainPairs,...snowPairs],[rainPairs,snowPairs]);
 const rRain=pearson(rainPairs.map(p=>p.x),rainPairs.map(p=>p.y));
 const rSnow=pearson(snowPairs.map(p=>p.x),snowPairs.map(p=>p.y));
@@ -1007,11 +1051,13 @@ const accuracy=useMemo(()=>{
 },[wxDaily]);
 const condGroups=useMemo(()=>{
 const g={sun:[],cloud:[],rain:[],snow:[]};
-const all=[...Object.entries(DJ_N1).flatMap(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i]}));}),
-...Object.entries(DJ_N).flatMap(([mm,arr])=>{const wx=wxDaily[mm]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i]}));})];
-all.forEach(({ca,wx})=>{if(!wx||ca<=0)return;const c=wx.code;if(c===0||c<=2)g.sun.push(ca);else if(c<=48)g.cloud.push(ca);else if(isSnow(c))g.snow.push(ca);else g.rain.push(ca);});
+const all=[
+  ...Object.entries(DJ_N1).flatMap(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i],mm,i}));}),
+  ...Object.entries(DJ_N).flatMap(([mm,arr])=>{const wx=wxDaily[mm]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i],mm,i}));})
+];
+all.forEach(({ca,wx,mm,i})=>{if(!wx||ca<=0||!inPeriod(mm,i,period,today))return;const c=wx.code;if(c===0||c<=2)g.sun.push(ca);else if(c<=48)g.cloud.push(ca);else if(isSnow(c))g.snow.push(ca);else g.rain.push(ca);});
 return g;
-},[wxDaily]);
+},[wxDaily,period,today]);
 const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):null;
 const condData=[{label:"Soleil",ic:"☀",v:avg(condGroups.sun)||320,n:condGroups.sun.length},{label:"Nuageux",ic:"☁",v:avg(condGroups.cloud)||480,n:condGroups.cloud.length},{label:"Pluie",ic:"🌧",v:avg(condGroups.rain)||720,n:condGroups.rain.length},{label:"Neige",ic:"❄",v:avg(condGroups.snow)||900,n:condGroups.snow.length}];
 const maxC=Math.max(...condData.map(c=>c.v));
@@ -1022,19 +1068,25 @@ return res;
 },[wxDaily]);
 return <div className="sh-stack">
 <Card>
-<div className="sh-section-head"><div className="sh-h2">Prévisions J+5 · CA estimé</div></div>
+<div className="sh-section-head">
+<div className="sh-h2">Prévisions J+5 · CA estimé</div>
+<span className="sh-meta-r">{PERIOD_LABELS[period]||"YTD"}</span>
+</div>
 <div className="sh-grid sh-grid-5">
-{wxForecast.map((f,i)=>{const est=estimateCA(f.rain,pairs);const s=f.rain>8?T.green:f.rain>3?T.rain:f.rain>0?T.txt2:T.whisper;
+{wxForecast.map((f,i)=>{
+const est=estimateCAByCondition(f,condGroups,rainPairs,snowPairs);
+const c=f.code;
+const sCol=(c===0||c<=2)?T.accent:(c<=48)?T.txt2:isSnow(c)?T.info:f.rain>5?T.green:T.rain;
 return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:i===0?T.card2:"transparent",border:`1px solid ${T.border}`}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>{f.label}</div>
 <div style={{fontSize:26,margin:"4px 0"}}>{wmoI(f.code)}</div>
 <div style={{fontSize:15,fontWeight:600,color:T.txt}}>{f.tmax}°C</div>
 <div style={{fontSize:11,color:T.whisper,margin:"2px 0"}}>{isSnow(f.code)?`${f.snow}cm`:`${f.rain}mm`}</div>
 <div style={{height:1,background:T.border,margin:"10px 0"}}/>
-<div style={{fontSize:14,fontWeight:600,color:s}}>{est?fmtK(est):"—"}</div>
+<div style={{fontSize:14,fontWeight:600,color:sCol}}>{est?fmtK(est):"—"}</div>
 </div>;})}
 </div>
-<div style={{fontSize:10,color:T.whisper,marginTop:12}}>Régression sur {pairs.length} jours réels · Open-Meteo Chamonix</div>
+{(()=>{const totalRefDays=condGroups.sun.length+condGroups.cloud.length+condGroups.rain.length+condGroups.snow.length;return <div style={{fontSize:10,color:T.whisper,marginTop:12,lineHeight:1.5}}>Modèle condition-aware sur <strong style={{color:T.txt2}}>{totalRefDays}</strong> jours réels ({condGroups.sun.length}☀ · {condGroups.cloud.length}☁ · {condGroups.rain.length}🌧 · {condGroups.snow.length}❄) · {PERIOD_LABELS[period]||"toute la base"} · Open-Meteo Chamonix</div>;})()}
 </Card>
 <Card>
 <div className="sh-section-head"><div className="sh-h2">Cette semaine N-1 (2025)</div></div>
@@ -1167,23 +1219,34 @@ const SimuTooltip = ({active,payload,label}) => {
   </div>;
 };
 
-function VueSimu(){
+function VueSimu({period}){
+  const today=useMemo(()=>new Date(),[]);
+  // Le sélecteur de période globale pilote le scope ; la sélection locale (selM)
+  // reste un drill-down secondaire DANS cette période (toujours utile pour zoomer sur un mois précis quand la période est large).
+  const scoped=useMemo(()=>filterSimuByPeriod(SIMU_DATA,period,today),[period,today]);
   const [selM,setSelM]=useState("all");
-  const mLabels=Object.values(SIMU_M_LABELS);
-  const filtered=selM==="all"?SIMU_DATA:(()=>{
+  // Si la période globale change, on remet le drill-down sur "all" pour éviter la confusion
+  useEffect(()=>{setSelM("all");},[period]);
+  // Mois disponibles DANS la période (pas la liste globale)
+  const scopedMonths=useMemo(()=>{
+    const set=new Set(scoped.map(r=>r.d.split("/")[1]));
+    return Array.from(set).sort().map(mm=>SIMU_M_LABELS[mm]).filter(Boolean);
+  },[scoped]);
+  const mLabels=scopedMonths;
+  const filtered=selM==="all"?scoped:(()=>{
     const mm=Object.keys(SIMU_M_LABELS).find(k=>SIMU_M_LABELS[k]===selM);
-    return SIMU_DATA.filter(r=>r.d.endsWith("/"+mm));
+    return scoped.filter(r=>r.d.endsWith("/"+mm));
   })();
   const totals={
-    b1:+SIMU_DATA.reduce((a,r)=>a+r.b1,0).toFixed(1),
-    b2:+SIMU_DATA.reduce((a,r)=>a+r.b2,0).toFixed(1),
-    b3:+SIMU_DATA.reduce((a,r)=>a+r.b3,0).toFixed(1),
+    b1:+scoped.reduce((a,r)=>a+r.b1,0).toFixed(1),
+    b2:+scoped.reduce((a,r)=>a+r.b2,0).toFixed(1),
+    b3:+scoped.reduce((a,r)=>a+r.b3,0).toFixed(1),
   };
   const grandTotal=+(totals.b1+totals.b2+totals.b3).toFixed(1);
   const topIdx=[totals.b1,totals.b2,totals.b3].indexOf(Math.max(totals.b1,totals.b2,totals.b3));
   const monthly=mLabels.map(ml=>{
     const mm=Object.keys(SIMU_M_LABELS).find(k=>SIMU_M_LABELS[k]===ml);
-    const rows=SIMU_DATA.filter(r=>r.d.endsWith("/"+mm));
+    const rows=scoped.filter(r=>r.d.endsWith("/"+mm));
     const b1=+rows.reduce((a,r)=>a+r.b1,0).toFixed(1);
     const b2=+rows.reduce((a,r)=>a+r.b2,0).toFixed(1);
     const b3=+rows.reduce((a,r)=>a+r.b3,0).toFixed(1);
@@ -1192,10 +1255,22 @@ function VueSimu(){
   const filteredTotal=+filtered.reduce((a,r)=>a+r.b1+r.b2+r.b3,0).toFixed(1);
   const avgJour=filtered.length?+(filteredTotal/filtered.length).toFixed(1):0;
   const avgMois=mLabels.length?+(grandTotal/mLabels.length).toFixed(1):0;
-  const avgJourAll=SIMU_DATA.length?+(grandTotal/SIMU_DATA.length).toFixed(1):0;
+  const avgJourAll=scoped.length?+(grandTotal/scoped.length).toFixed(1):0;
   const dayData=filtered.map(r=>({j:r.d,"Bay 1":r.b1,"Bay 2":r.b2,"Bay 3":r.b3}));
   const C=[T.chartCur,T.accent,T.rain];
   const bayLabels=["Bay 1","Bay 2","Bay 3"];
+  const periodLbl=PERIOD_LABELS[period]||"YTD";
+  if(scoped.length===0){
+    return <div className="sh-stack">
+      <Card>
+        <div className="sh-section-head"><div className="sh-h2">Simulateurs</div><span className="sh-meta-r">{periodLbl}</span></div>
+        <div style={{textAlign:"center",padding:"40px 16px",color:T.whisper}}>
+          <div style={{fontSize:14,color:T.txt2,marginBottom:6}}>Aucune session enregistrée sur cette période</div>
+          <div style={{fontSize:12}}>Élargis la fenêtre via le sélecteur en haut (YTD pour voir tout l'historique).</div>
+        </div>
+      </Card>
+    </div>;
+  }
   return <div className="sh-stack">
     <div className="sh-grid sh-grid-kpi">
       {[totals.b1,totals.b2,totals.b3].map((h,i)=>{
@@ -1224,7 +1299,7 @@ function VueSimu(){
       </Card>
     </div>
     <Card>
-      <div className="sh-section-head"><div className="sh-h2">Heures par bay · agrégat mensuel</div></div>
+      <div className="sh-section-head"><div className="sh-h2">Heures par bay · agrégat mensuel</div><span className="sh-meta-r">{periodLbl} · {scoped.length}j</span></div>
       <ResponsiveContainer width="100%" height={260}>
         <BarChart data={monthly} barCategoryGap="30%" margin={{top:18,right:4,left:-10,bottom:0}}>
           <CartesianGrid stroke={T.border} vertical={false}/>
@@ -1613,8 +1688,8 @@ return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}
 {vue==="mois" && <VueMois ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
 {vue==="annee" && <VueAnnee ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
 {vue==="jours" && <VueJours wxDaily={wxDaily}/>}
-{vue==="meteo" && <VueMeteo wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} wxDaily={wxDaily}/>}
-{vue==="simu" && <VueSimu/>}
+{vue==="meteo" && <VueMeteo wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} wxDaily={wxDaily} period={period}/>}
+{vue==="simu" && <VueSimu period={period}/>}
 {vue==="membership" && <VueMembership/>}
 </main>
 
