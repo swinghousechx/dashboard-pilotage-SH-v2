@@ -781,14 +781,18 @@ function filterSimuByPeriod(rows,period,today){
 
 // Estimateur CA condition-aware : utilise la moyenne du groupe pour soleil/nuageux,
 // et la régression pour pluie/neige où la quantité d'eau/neige module la prédiction.
+// Renvoie {value,kind,n,label,formula} pour pouvoir l'expliquer dans l'UI.
 function estimateCAByCondition(forecast, groups, rainPairs, snowPairs){
   const c=forecast.code;
   const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):null;
-  if(c===0||c<=2) return avg(groups.sun);
-  if(c<=48) return avg(groups.cloud);
-  if(c!=null && ((c>=71&&c<=77)||c===85||c===86)) // neige
-    return groups.snow.length>=3?estimateCA(forecast.snow,snowPairs):avg(groups.snow);
-  return rainPairs.length>=3?estimateCA(forecast.rain,rainPairs):avg(groups.rain);
+  if(c===0||c<=2) return {value:avg(groups.sun),kind:"sun",n:groups.sun.length,label:"soleil",formula:`moyenne CA des ${groups.sun.length} jours soleil passés`};
+  if(c<=48) return {value:avg(groups.cloud),kind:"cloud",n:groups.cloud.length,label:"nuageux",formula:`moyenne CA des ${groups.cloud.length} jours nuageux passés`};
+  if(c!=null && ((c>=71&&c<=77)||c===85||c===86)){
+    if(groups.snow.length>=3) return {value:estimateCA(forecast.snow,snowPairs),kind:"snow-reg",n:snowPairs.length,label:"neige",formula:`régression linéaire CA = f(cm de neige) sur ${snowPairs.length} jours · prédit ici pour ${forecast.snow}cm`};
+    return {value:avg(groups.snow),kind:"snow-avg",n:groups.snow.length,label:"neige",formula:`moyenne CA des ${groups.snow.length} jours neige passés`};
+  }
+  if(rainPairs.length>=3) return {value:estimateCA(forecast.rain,rainPairs),kind:"rain-reg",n:rainPairs.length,label:"pluie",formula:`régression linéaire CA = f(mm de pluie) sur ${rainPairs.length} jours · prédit ici pour ${forecast.rain}mm`};
+  return {value:avg(groups.rain),kind:"rain-avg",n:groups.rain.length,label:"pluie",formula:`moyenne CA des ${groups.rain.length} jours pluvieux passés`};
 }
 
 function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily,period}){
@@ -1109,18 +1113,26 @@ return <div className="sh-stack">
 <div className="sh-h2">Prévisions J+5 · CA estimé</div>
 <span className="sh-meta-r">{PERIOD_LABELS[period]||"YTD"}</span>
 </div>
+<div style={{fontSize:11,color:T.whisper,marginBottom:14,lineHeight:1.55}}>
+Chaque jour est classé par sa condition météo prévue. La prédiction est <strong style={{color:T.txt2}}>la moyenne du CA réalisé les jours de la même condition</strong> sur la période active (soleil/nuageux), ou une <strong style={{color:T.txt2}}>régression sur la quantité d'eau/neige</strong> pour pluie/neige. Survole une card pour voir le calcul exact.
+</div>
 <div className="sh-grid sh-grid-5">
 {wxForecast.map((f,i)=>{
 const est=estimateCAByCondition(f,condGroups,rainPairs,snowPairs);
 const c=f.code;
 const sCol=(c===0||c<=2)?T.accent:(c<=48)?T.txt2:isSnow(c)?T.info:f.rain>5?T.green:T.rain;
-return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:i===0?T.card2:"transparent",border:`1px solid ${T.border}`}}>
+const kindIcon={sun:"☀",cloud:"☁","rain-reg":"🌧","rain-avg":"🌧","snow-reg":"❄","snow-avg":"❄"}[est?.kind]||"";
+const isReg=est?.kind?.endsWith("-reg");
+return <div key={i} title={est?`${f.label} prévu ${est.label}. Méthode : ${est.formula}.`:""} style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:i===0?T.card2:"transparent",border:`1px solid ${T.border}`,cursor:est?"help":"default"}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>{f.label}</div>
 <div style={{fontSize:26,margin:"4px 0"}}>{wmoI(f.code)}</div>
 <div style={{fontSize:15,fontWeight:600,color:T.txt}} data-private="true">{f.tmax}°C</div>
 <div style={{fontSize:11,color:T.whisper,margin:"2px 0"}} data-private="true">{isSnow(f.code)?`${f.snow}cm`:`${f.rain}mm`}</div>
 <div style={{height:1,background:T.border,margin:"10px 0"}}/>
-<div style={{fontSize:14,fontWeight:600,color:sCol}} data-private="true">{est?fmtK(est):"—"}</div>
+<div style={{fontSize:14,fontWeight:600,color:sCol}} data-private="true">{est?.value!=null?fmtK(est.value):"—"}</div>
+{est&&<div style={{fontSize:9,color:T.whisper,marginTop:4,lineHeight:1.3}}>
+{isReg?<>régression · <span data-private="true">{est.n}j</span></>:<>moy. <span data-private="true">{est.n}j</span> {kindIcon}</>}
+</div>}
 </div>;})}
 </div>
 {(()=>{const totalRefDays=condGroups.sun.length+condGroups.cloud.length+condGroups.rain.length+condGroups.snow.length;return <div style={{fontSize:10,color:T.whisper,marginTop:12,lineHeight:1.5}}>Modèle condition-aware sur <strong style={{color:T.txt2}}>{totalRefDays}</strong> jours réels ({condGroups.sun.length}☀ · {condGroups.cloud.length}☁ · {condGroups.rain.length}🌧 · {condGroups.snow.length}❄) · {PERIOD_LABELS[period]||"toute la base"} · Open-Meteo Chamonix</div>;})()}
