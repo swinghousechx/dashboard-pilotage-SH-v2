@@ -117,10 +117,18 @@ input,select,button,textarea{font-family:inherit;font-variant-numeric:tabular-nu
 /* ─── Topbar ─── */
 .sh-topbar{
   position:sticky;top:0;z-index:20;
-  background:color-mix(in oklch, var(--bg) 86%, transparent);
+  background:color-mix(in oklch, var(--bg) 90%, transparent);
+  backdrop-filter:saturate(180%) blur(8px);
+  -webkit-backdrop-filter:saturate(180%) blur(8px);
   border-bottom:1px solid var(--hairline);
   padding:0.75rem clamp(0.85rem, 2vw, 1.5rem);
   display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+}
+.sh-scroll-progress{
+  position:absolute;left:0;bottom:-1px;height:2px;
+  background:linear-gradient(90deg,var(--primary),var(--accent));
+  width:0;transition:width 60ms linear;pointer-events:none;
+  border-radius:0 2px 2px 0;
 }
 .sh-brand{display:flex;align-items:center;gap:0.75rem;min-width:0;}
 .sh-brand-mark{display:flex;align-items:center;gap:0.5rem;}
@@ -135,6 +143,9 @@ input,select,button,textarea{font-family:inherit;font-variant-numeric:tabular-nu
 }
 .sh-brand-text{font-size:0.86rem;font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
 .sh-brand-sub{font-size:0.78rem;color:var(--ink-muted);font-weight:400;}
+.sh-logo{color:var(--ink);fill:currentColor;width:auto;flex-shrink:0;}
+.sh-logo *{fill:currentColor;}
+@media (max-width:600px){.sh-logo{height:22px;}}
 .sh-meta{display:flex;align-items:center;gap:0.85rem;flex-wrap:wrap;}
 
 /* ─── Nav tabs ─── */
@@ -251,6 +262,7 @@ input[type=range]::-moz-range-thumb{
   padding:2px 7px;border-radius:99px;
   font-size:0.7rem;font-weight:600;font-variant-numeric:tabular-nums;
   border:1px solid transparent;
+  white-space:nowrap;flex-shrink:0;line-height:1;
 }
 .sh-pill-pos{background:var(--primary-tint);color:var(--primary);border-color:color-mix(in oklch,var(--primary) 30%, transparent);}
 .sh-pill-neg{background:var(--danger-tint);color:var(--danger);border-color:color-mix(in oklch,var(--danger) 30%, transparent);}
@@ -301,6 +313,69 @@ input[type=range]::-moz-range-thumb{
 .sh-alert[data-tone="pos"]{border-color:color-mix(in oklch,var(--primary) 40%, transparent);background:var(--primary-tint);}
 .sh-alert[data-tone="neu"]{border-color:color-mix(in oklch,var(--accent) 40%, transparent);background:var(--accent-tint);}
 .sh-alert[data-tone="neg"]{border-color:color-mix(in oklch,var(--danger) 40%, transparent);background:var(--danger-tint);}
+
+/* ─── Toast ─── */
+.sh-toast-wrap{
+  position:fixed;bottom:clamp(0.75rem,2vw,1.5rem);right:clamp(0.75rem,2vw,1.5rem);
+  display:flex;flex-direction:column;gap:0.5rem;z-index:50;
+  max-width:min(380px,calc(100vw - 1.5rem));pointer-events:none;
+}
+.sh-toast{
+  display:flex;align-items:flex-start;gap:0.6rem;
+  background:var(--surface);border:1px solid var(--hairline);
+  border-left:3px solid var(--danger);
+  border-radius:var(--radius);padding:0.7rem 0.85rem;
+  box-shadow:0 10px 30px -8px rgba(0,0,0,0.25);
+  font-size:0.82rem;color:var(--ink);
+  pointer-events:auto;animation:shToastIn 220ms cubic-bezier(0.34,1.56,0.64,1);
+}
+.sh-toast[data-tone="warn"]{border-left-color:var(--accent);}
+.sh-toast[data-tone="info"]{border-left-color:var(--info);}
+.sh-toast-body{flex:1;min-width:0;}
+.sh-toast-title{font-weight:600;margin-bottom:2px;}
+.sh-toast-msg{color:var(--ink-muted);font-size:0.74rem;line-height:1.45;word-break:break-word;}
+.sh-toast-close{
+  background:transparent;border:none;color:var(--ink-muted);cursor:pointer;
+  width:22px;height:22px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:14px;line-height:1;padding:0;
+}
+.sh-toast-close:hover{color:var(--ink);background:var(--surface-2);}
+@keyframes shToastIn{from{opacity:0;transform:translateY(8px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+
+/* ─── Fresh data badge ─── */
+.sh-fresh{
+  display:inline-flex;align-items:center;gap:5px;
+}
+.sh-fresh-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--ink-muted);
+  flex-shrink:0;
+}
+.sh-fresh[data-age="fresh"] .sh-fresh-dot{
+  background:var(--primary);
+  box-shadow:0 0 0 0 var(--primary-tint);
+  animation:shFreshPulse 2.2s ease-in-out infinite;
+}
+.sh-fresh[data-age="stale"] .sh-fresh-dot{background:var(--accent);}
+.sh-fresh[data-age="old"] .sh-fresh-dot{background:var(--danger);}
+.sh-fresh[data-age="fresh"] .sh-fresh-time{color:var(--ink-2);}
+.sh-fresh[data-age="stale"] .sh-fresh-time{color:var(--accent);}
+.sh-fresh[data-age="old"] .sh-fresh-time{color:var(--danger);}
+@keyframes shFreshPulse{
+  0%,100%{box-shadow:0 0 0 0 var(--primary-tint);}
+  50%{box-shadow:0 0 0 5px transparent;}
+}
+
+/* ─── Skeleton loaders ─── */
+.sh-skel{
+  background:linear-gradient(90deg,var(--surface-2) 0%,var(--hairline-2) 50%,var(--surface-2) 100%);
+  background-size:200% 100%;border-radius:6px;
+  animation:shSkel 1.4s ease-in-out infinite;display:block;
+}
+@keyframes shSkel{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.sh-skel-line{height:0.85em;margin:0.4em 0;}
+.sh-skel-w-30{width:30%;}.sh-skel-w-50{width:50%;}.sh-skel-w-70{width:70%;}.sh-skel-w-90{width:90%;}
+.sh-skel-block{height:60px;}
+@media (prefers-reduced-motion:reduce){.sh-skel,.sh-fresh-dot{animation:none!important;}}
 
 /* ─── Footer ─── */
 .sh-footer{
@@ -600,8 +675,8 @@ return <div style={{display:"flex",alignItems:"center",gap:10,padding:"5px 0"}}>
 <div style={{position:"absolute",left:0,top:0,width:`${Math.min(w*0.714,100)}%`,height:"100%",background:n>=n1?T.green:T.txt2,borderRadius:4,opacity:0.85}}/>
 <div style={{position:"absolute",left:"71.4%",top:0,width:"1.5px",height:"100%",background:T.border2}}/>
 </div>
-<div style={{width:48,textAlign:"right",flexShrink:0}}>{d!=null?<DeltaBadge d={d}/>:null}</div>
-<div style={{width:54,fontSize:11,color:T.whisper,textAlign:"right",flexShrink:0,fontVariantNumeric:"tabular-nums"}}>{fmtK(n||0)}</div>
+<div style={{minWidth:62,textAlign:"right",flexShrink:0,display:"flex",justifyContent:"flex-end"}}>{d!=null?<DeltaBadge d={d}/>:null}</div>
+<div style={{width:58,fontSize:11,color:T.whisper,textAlign:"right",flexShrink:0,fontVariantNumeric:"tabular-nums"}}>{fmtK(n||0)}</div>
 </div>;
 }
 
@@ -623,7 +698,20 @@ return <div className="sh-alert" data-tone={tone}>
 </div>;
 }
 
-function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily}){
+// Somme rolling sur N derniers jours pour une source DJ (DJ_N ou DJ_N1)
+function sumLastNDays(dj,today,n){
+  let total=0;
+  for(let i=0;i<n;i++){
+    const d=new Date(today); d.setDate(d.getDate()-i);
+    const mm=String(d.getMonth()+1).padStart(2,"0");
+    const idx=d.getDate()-1;
+    total += (dj[mm]||[])[idx] || 0;
+  }
+  return total;
+}
+const PERIOD_LABELS={month:"Mois en cours","7d":"7 derniers jours","30d":"30 derniers jours",ytd:"YTD"};
+
+function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily,period}){
 const today=new Date(),mIdx=today.getMonth(),mKey=MONTHS[mIdx],mm=MM[mIdx],dd=today.getDate()-1;
 const caJN1=DJ_N1[mm]?.[dd]??null;
 const objJour=caJN1!=null?Math.round(caJN1*(1+growth/100)):null;
@@ -638,6 +726,12 @@ const totalN=moisNOK.reduce((a,m)=>a+(ca_n[m]||0),0);
 const totalN1S=moisNOK.reduce((a,m)=>a+(ca_n1[m]||0),0);
 const objMois=caMN1?Math.round(caMN1*(1+growth/100)):null;
 const objAnnuel=MONTHS.reduce((a,m)=>a+(ca_n1[m]?Math.round(ca_n1[m]*(1+growth/100)):0),0);
+
+// ─── Calcul fenêtre sélectionnée (Période globale) ─────────────────────────
+let periodN, periodN1, periodLbl=PERIOD_LABELS[period]||"YTD";
+if(period==="month"){ periodN=caMN; periodN1=caN1MemeStade; }
+else if(period==="ytd"){ periodN=totalN; periodN1=totalN1S; }
+else { const n=period==="7d"?7:30; periodN=sumLastNDays(DJ_N,today,n); periodN1=sumLastNDays(DJ_N1,today,n); }
 const pairs=useMemo(()=>{
 const p=[];
 Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0)p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
@@ -651,7 +745,7 @@ return <div className="sh-stack">
 {probaAuj!=null&&<AlerteBanner rain={rainAuj} proba={probaAuj} objJour={objJour} demain={false}/>}
 {probaDem!=null&&<AlerteBanner rain={rainDem} proba={probaDem} objJour={objJour} demain={true}/>}
 <div className="sh-grid sh-grid-kpi">
-{[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1",stade:true},{label:"YTD",n:totalN,n1:totalN1S,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub,stade},i)=>(
+{[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1",stade:true},{label:periodLbl,n:periodN,n1:periodN1,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub,stade},i)=>(
 <Card key={i}>
 <div className="sh-label" style={{marginBottom:6}}>{label}</div>
 <div className="sh-value" style={{marginBottom:4}}>{fmt(n)}</div>
@@ -696,7 +790,10 @@ return <div className="sh-stack">
 </div>
 <div style={{fontSize:11,color:T.txt2}}>{wmoT(wx.code)}</div>
 {ca!=null&&<div style={{fontSize:12,fontWeight:600,marginTop:6,color:T.txt}}>{fmt(ca)}</div>}
-</>:<div style={{fontSize:12,color:T.whisper,paddingTop:8}}>Chargement…</div>}
+</>:<div aria-busy="true" aria-label="Chargement météo">
+<div className="sh-skel sh-skel-block" style={{height:46,marginBottom:8}}/>
+<div className="sh-skel sh-skel-line sh-skel-w-50"/>
+</div>}
 </div>
 ))}
 </div>
@@ -881,6 +978,33 @@ return p;
 const pairs=useMemo(()=>[...rainPairs,...snowPairs],[rainPairs,snowPairs]);
 const rRain=pearson(rainPairs.map(p=>p.x),rainPairs.map(p=>p.y));
 const rSnow=pearson(snowPairs.map(p=>p.x),snowPairs.map(p=>p.y));
+
+// ─── Précision du modèle : prédit chaque jour 2026 à partir des paires 2025 uniquement ──
+const accuracy=useMemo(()=>{
+  // Paires de référence : uniquement DJ_N1 (pour éviter la fuite de données quand on prédit DJ_N)
+  const refPairs=[];
+  Object.entries(DJ_N1).forEach(([mm,arr])=>{const w=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(w[i]&&ca>0)refPairs.push({x:+(w[i].rain||0).toFixed(1),y:ca});});});
+  if(refPairs.length<10) return null;
+  const errs=[],apes=[],series=[];
+  Object.entries(DJ_N).forEach(([mm,arr])=>{
+    const w=wxDaily[mm]||[];
+    (arr||[]).forEach((ca,i)=>{
+      if(ca==null||ca<=0||!w[i])return;
+      const pred=estimateCA(+(w[i].rain||0).toFixed(1),refPairs);
+      if(pred==null)return;
+      const err=Math.abs(pred-ca);
+      errs.push(err);
+      apes.push(err/ca);
+      series.push({d:`${String(i+1).padStart(2,"0")}/${mm}`,pred,actual:ca});
+    });
+  });
+  if(!errs.length) return null;
+  const mae=Math.round(errs.reduce((a,b)=>a+b,0)/errs.length);
+  const mape=Math.round(apes.reduce((a,b)=>a+b,0)/apes.length*100);
+  // bias = signe moyen pred-actual (sur ou sous-estimation systématique)
+  const bias=Math.round(series.reduce((a,r)=>a+(r.pred-r.actual),0)/series.length);
+  return {n:errs.length,mae,mape,bias,series:series.slice(-30)};
+},[wxDaily]);
 const condGroups=useMemo(()=>{
 const g={sun:[],cloud:[],rain:[],snow:[]};
 const all=[...Object.entries(DJ_N1).flatMap(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i]}));}),
@@ -957,6 +1081,41 @@ return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8
 </div>
 </Card>
 </div>
+{accuracy&&<Card>
+<div className="sh-section-head"><div className="sh-h2">Précision du modèle météo → CA</div><span className="sh-meta-r">{accuracy.n} jours évalués</span></div>
+<div style={{fontSize:11,color:T.whisper,marginBottom:14,lineHeight:1.5}}>Le modèle apprend uniquement sur 2025 et prédit chaque jour 2026 (pas de fuite de données). Plus le MAPE est bas, plus le modèle est fiable.</div>
+<div className="sh-grid sh-grid-3" style={{gap:10}}>
+<div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>MAPE</div>
+<div style={{fontSize:32,fontWeight:700,color:accuracy.mape<25?T.green:accuracy.mape<50?T.accent:T.red,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{accuracy.mape}%</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:6}}>{accuracy.mape<25?"Excellent":accuracy.mape<50?"Acceptable":"À améliorer"}</div>
+<div style={{fontSize:10,color:T.whisper,marginTop:2}}>erreur relative moy.</div>
+</div>
+<div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>MAE</div>
+<div style={{fontSize:32,fontWeight:700,color:T.txt,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{fmtK(accuracy.mae)}</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:6}}>écart absolu moy.</div>
+<div style={{fontSize:10,color:T.whisper,marginTop:2}}>vs réalisé</div>
+</div>
+<div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>Biais</div>
+<div style={{fontSize:32,fontWeight:700,color:Math.abs(accuracy.bias)<50?T.green:accuracy.bias>0?T.accent:T.rain,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{accuracy.bias>=0?"+":""}{fmtK(accuracy.bias)}</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:6}}>{accuracy.bias>50?"Surestime":accuracy.bias<-50?"Sous-estime":"Neutre"}</div>
+<div style={{fontSize:10,color:T.whisper,marginTop:2}}>pred − réalisé</div>
+</div>
+</div>
+{accuracy.series.length>5&&<ResponsiveContainer width="100%" height={180}>
+<LineChart data={accuracy.series} margin={{top:16,right:8,left:-10,bottom:0}}>
+<CartesianGrid stroke={T.border} vertical={false}/>
+<XAxis dataKey="d" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
+<YAxis tickFormatter={v=>v?`${(v/1000).toFixed(1)}k`:"0"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<Tooltip content={<CTooltip/>}/>
+<Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8,color:T.txt2}} iconSize={8}/>
+<Line type="monotone" dataKey="actual" name="Réalisé" stroke={T.chartCur} strokeWidth={2} dot={false}/>
+<Line type="monotone" dataKey="pred" name="Prédit" stroke={T.chartObj} strokeWidth={1.5} strokeDasharray="4 3" dot={false}/>
+</LineChart>
+</ResponsiveContainer>}
+</Card>}
 <Card>
 <div className="sh-section-head"><div className="sh-h2">Scatter météo × CA</div></div>
 <div style={{fontSize:11,color:T.whisper,marginBottom:14,lineHeight:1.5}}>Chaque point = un jour passé. Une tendance montante de gauche à droite confirme l'effet météo sur les réservations.</div>
@@ -1258,7 +1417,48 @@ const [lastSync,setLastSync]=useState(null);
 const [syncing,setSyncing]=useState(false);
 const [syncStatus,setSyncStatus]=useState("");
 const [theme,setTheme]=useState(()=>localStorage.getItem("sh_theme")||"auto"); // auto|dark|light
+const [period,setPeriod]=useState(()=>localStorage.getItem("sh_period")||"month"); // month|7d|30d|ytd
+const [scrollPct,setScrollPct]=useState(0);
+const [toasts,setToasts]=useState([]);
+const [now,setNow]=useState(()=>Date.now()); // tick pour rafraîchir le badge "fresh"
 const [,forceRender]=useState(0);
+
+const pushToast=useCallback((toast)=>{
+  const id=Date.now()+Math.random();
+  setToasts(t=>[...t,{id,tone:"warn",ttl:8000,...toast}]);
+  setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),toast.ttl||8000);
+},[]);
+const dismissToast=useCallback((id)=>setToasts(t=>t.filter(x=>x.id!==id)),[]);
+
+useEffect(()=>{localStorage.setItem("sh_period",period);},[period]);
+
+// Scroll progress
+useEffect(()=>{
+  const onScroll=()=>{
+    const h=document.documentElement;
+    const max=h.scrollHeight-h.clientHeight;
+    setScrollPct(max>0?Math.min(100,(h.scrollTop||window.scrollY)/max*100):0);
+  };
+  window.addEventListener("scroll",onScroll,{passive:true});
+  onScroll();
+  return ()=>window.removeEventListener("scroll",onScroll);
+},[]);
+
+// Tick toutes les 30s pour réévaluer la fraîcheur des données
+useEffect(()=>{
+  const t=setInterval(()=>setNow(Date.now()),30000);
+  return ()=>clearInterval(t);
+},[]);
+
+// Calcul fraîcheur — fresh < 5 min, stale < 30 min, old au-delà
+const freshState=useMemo(()=>{
+  if(!lastSync) return {age:"none",label:"Sync"};
+  const min=Math.floor((now-lastSync.getTime())/60000);
+  let age="fresh";
+  if(min>=30) age="old";
+  else if(min>=5) age="stale";
+  return {age,label:lastSync.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}),min};
+},[lastSync,now]);
 
 // ─── thème : applique data-theme et écoute le système ─────────────────────
 useEffect(()=>{
@@ -1311,9 +1511,10 @@ console.log("✅ Sync OK");
 }catch(e){
 setSyncStatus("erreur");
 console.warn("❌ Sync échouée:", e.message);
+pushToast({tone:"warn",title:"Sync Google Sheets échouée",msg:e.message+" — données affichées : derniers chiffres connus. Réessaie dans quelques minutes."});
 }
 setSyncing(false);
-},[]);
+},[pushToast]);
 
 useEffect(()=>{ syncSheets(); const t=setInterval(syncSheets,120000); return()=>clearInterval(t); },[]);
 
@@ -1327,9 +1528,11 @@ fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=$
 
 useEffect(()=>{
 const months=[
-{key:"01",arch:false,s:"2026-01-01",e:"2026-01-31"},{key:"02",arch:false,s:"2026-02-01",e:"2026-02-28"},
-{key:"03",arch:false,s:"2026-03-01",e:"2026-03-31"},{key:"04",arch:false,s:"2026-04-01",e:"2026-04-30"},
-{key:"05",arch:false,s:"2026-05-01",e:"2026-05-31"},{key:"06",arch:false,s:"2026-06-01",e:"2026-06-30"},
+// Mois 2026 : archive pour les mois entièrement passés (l'API forecast ne couvre
+// que ~92 jours rétroactifs, ce qui dégrade voire vide les mois Jan-Avril en juin).
+{key:"01",arch:true, s:"2026-01-01",e:"2026-01-31"},{key:"02",arch:true, s:"2026-02-01",e:"2026-02-28"},
+{key:"03",arch:true, s:"2026-03-01",e:"2026-03-31"},{key:"04",arch:true, s:"2026-04-01",e:"2026-04-30"},
+{key:"05",arch:true, s:"2026-05-01",e:"2026-05-31"},{key:"06",arch:false,s:"2026-06-01",e:"2026-06-30"},
 {key:"n1-02",arch:true,s:"2025-02-15",e:"2025-02-28"},{key:"n1-03",arch:true,s:"2025-03-01",e:"2025-03-31"},
 {key:"n1-04",arch:true,s:"2025-04-01",e:"2025-04-30"},{key:"n1-05",arch:true,s:"2025-05-01",e:"2025-05-31"},
 {key:"n1-06",arch:true,s:"2025-06-01",e:"2025-06-30"},{key:"n1-07",arch:true,s:"2025-07-01",e:"2025-07-31"},
@@ -1355,18 +1558,34 @@ const themeLabel = theme==="auto" ? "Auto" : theme==="dark" ? "Dark" : "Light";
 return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}}>
 
 <header className="sh-topbar">
+<div className="sh-scroll-progress" style={{width:`${scrollPct}%`}} aria-hidden="true"/>
 <div className="sh-brand">
-<div className="sh-brand-mark">
 <span className="sh-dot" aria-hidden="true"/>
-<div>
-<div className="sh-brand-text">Swing House</div>
-<div className="sh-brand-sub">Pilotage · Chamonix</div>
-</div>
-</div>
-<div className="sh-sep" style={{width:1,height:24,background:"var(--hairline)",margin:"0 6px"}}/>
+<svg className="sh-logo" height="28" viewBox="0 0 1765.91 370" xmlns="http://www.w3.org/2000/svg" aria-label="Swing House">
+<path d="M1369.93,293.97l-.85-50.72c11.84,8.44,46.84,22.14,62.63,22.62,15.98.48,22.36-3.86,22.56-10.55.66-21.86-77.4-8.24-75.86-59.44.74-24.61,14.13-39.8,61.13-39.8,19.95,0,39.3.13,67.39.22l-22.17,42.79c-12.84-7.48-33.79-14.08-45.67-14.63-13.72-.64-22.21,3.71-22.42,10.6-.64,21.07,77.22,7.65,75.69,58.45-.72,24.02-16.47,41.35-61.69,40.91-22.43-.22-31.92,0-60.74-.44Z"/>
+<path d="M849.61,239.65h30.82l.22,54.65c-14.56.04-29.12.07-43.67.11,1.77-3.58,3.55-7.16,5.32-10.74-9.72,7.88-22.16,11.23-36.55,11.23-37.52,0-69.02-24.84-69.02-70.37s31.69-73.13,75.83-73.13c25.47,0,46.08,8.87,59.5,25.23l-24.5,22.47c-9.33-10.45-20.03-15.37-33.05-15.37-23.33,0-38.89,15.57-38.89,40.6,0,26.61,16.14,39.03,35,39.03,2.21,0,5.73-.08,9.92-1.12,9.54-2.36,15.79-7.76,18.72-10.68,3.45-3.97,6.91-7.94,10.36-11.92Z"/>
+<g><rect x="1083.42" y="185.47" width="5.8" height="34.79"/><rect x="1141.39" y="272.43" width="34.79" height="5.8"/><rect x="1228.35" y="185.47" width="5.8" height="34.79"/><rect x="1141.39" y="127.49" width="34.79" height="5.8"/><rect x="1129.8" y="266.63" width="11.59" height="5.8"/><rect x="1176.18" y="266.63" width="11.59" height="5.8"/><rect x="1118.2" y="260.83" width="11.59" height="5.8"/><rect x="1187.77" y="260.83" width="11.59" height="5.8"/><rect x="1112.41" y="255.04" width="5.8" height="5.8"/>
+<polygon points="1205.17 243.44 1205.17 249.24 1199.37 249.24 1199.37 255.04 1187.77 255.04 1187.77 260.83 1176.18 260.83 1176.18 266.63 1141.39 266.63 1141.39 260.83 1129.8 260.83 1129.8 255.04 1118.2 255.04 1118.2 249.24 1112.41 249.24 1112.41 243.44 1106.61 243.44 1106.61 231.85 1100.81 231.85 1100.81 220.25 1095.02 220.25 1095.02 185.47 1100.81 185.47 1100.81 173.87 1106.61 173.87 1106.61 162.28 1112.41 162.28 1112.41 156.48 1118.2 156.48 1118.2 168.08 1124 168.08 1124 185.47 1129.8 185.47 1129.8 197.06 1135.59 197.06 1135.59 208.66 1141.39 208.66 1141.39 214.45 1147.19 214.45 1147.19 220.25 1152.99 220.25 1152.99 226.05 1164.58 226.05 1164.58 231.85 1176.18 231.85 1176.18 237.65 1193.57 237.65 1193.57 243.44 1205.17 243.44"/>
+<rect x="1118.2" y="139.09" width="11.59" height="5.8"/><rect x="1129.8" y="133.29" width="11.59" height="5.8"/><rect x="1112.41" y="144.89" width="5.8" height="5.8"/><rect x="1106.61" y="150.68" width="5.8" height="5.8"/><rect x="1176.18" y="133.29" width="11.59" height="5.8"/><rect x="1187.77" y="139.09" width="11.59" height="5.8"/><rect x="1199.37" y="144.89" width="5.8" height="5.8"/><rect x="1222.56" y="220.25" width="5.8" height="11.59"/><rect x="1222.56" y="173.87" width="5.8" height="11.59"/><rect x="1216.76" y="231.85" width="5.8" height="11.59"/><rect x="1216.76" y="162.28" width="5.8" height="11.59"/><rect x="1210.96" y="243.44" width="5.8" height="5.8"/><rect x="1210.96" y="156.48" width="5.8" height="5.8"/><rect x="1205.17" y="249.24" width="5.8" height="5.8"/><rect x="1199.36" y="255.04" width="5.8" height="5.8"/><rect x="1205.17" y="150.68" width="5.8" height="5.8"/><rect x="1089.21" y="220.25" width="5.8" height="11.59"/><rect x="1095.02" y="231.85" width="5.8" height="11.59"/><rect x="1100.81" y="243.44" width="5.8" height="5.8"/><rect x="1106.61" y="249.24" width="5.8" height="5.8"/><rect x="1089.21" y="173.87" width="5.8" height="11.59"/><rect x="1095.02" y="162.28" width="5.8" height="11.59"/><rect x="1100.81" y="156.48" width="5.8" height="5.8"/></g>
+<polygon points="1187.84 285.31 1187.84 291.12 1129.73 291.12 1129.73 285.31 1112.3 285.31 1112.3 291.12 1118.11 291.12 1118.11 296.93 1123.92 296.93 1123.92 302.74 1135.54 302.74 1135.54 308.55 1141.35 308.55 1141.35 314.36 1147.16 314.36 1147.16 325.98 1152.98 325.98 1152.98 356.67 1158.61 356.67 1158.61 367 1164.59 367 1164.59 325.98 1170.41 325.98 1170.41 314.36 1176.21 314.36 1176.21 308.55 1182.03 308.55 1182.03 302.74 1193.64 302.74 1193.64 296.93 1199.46 296.93 1199.46 291.12 1205.27 291.12 1205.27 285.31 1187.84 285.31"/>
+<path d="M152.15,278.71l13.15-33.96c12.54,9.54,30.35,16.05,46.74,16.05s23.06-5.35,23.06-13.26c0-25.82-80.52-6.98-80.52-67.46,0-29.08,20.64-52.81,62.72-52.81,18.41,0,37.43,4.88,51.39,14.19l-12.34,34.2c-13.55-8.38-26.91-12.56-39.25-12.56-16.79,0-22.86,6.51-22.86,14.66,0,24.89,80.32,6.28,80.32,66.3,0,28.38-20.64,52.58-62.72,52.58-23.27,0-46.33-7.21-59.68-17.91Z"/>
+<path d="M493.14,155.63v80.2c0,38.82-23.11,59.8-62.74,59.8-18.26,0-32.63-5.3-42.35-14.31-9.71,9.02-24.09,14.31-42.54,14.31-39.43,0-62.74-20.98-62.74-59.8v-80.2h38.46v79.02c0,19.8,7.96,28.82,23.7,28.82s23.7-9.02,23.7-28.82v-79.02h38.46v79.02c0,19.8,8.16,28.82,24.09,28.82s23.51-9.02,23.51-28.82v-79.02h38.46Z"/>
+<path d="M565.29,186.01v78.24h21.95v30.38h-82.33v-49.88l21.92,19.51v-78.25h-22.14v-30.38h82.56v30.38h-21.95Z"/>
+<path d="M727.46,213.49v81.14c-12.45-.11-24.9-.22-37.35-.33.34-10.72,1.37-47.12-.34-79.61-.36-6.91-1.21-18.53-9.36-24.88-3.93-3.06-8.96-4.55-14.81-4.55-15.04,0-26.27,9.74-26.27,31.42,4.73,25.99,9.46,51.97,14.19,77.96-17.29,0-34.58,0-51.88,0v-139.21h36.54v15.91c8.95-12.33,22.08-18.69,39.21-18.69,31.4,0,50.05,21.68,50.05,60.86Z"/>
+<path d="M1072.57,155.93c-.2,36.7-.4,73.41-.6,110.11,9.21,9.53,18.42,19.06,27.64,28.6-21.83,0-43.67,0-65.5,0v-54.1h-52.45v54.1h-38.46c-.11-50.11-.21-100.21-.32-150.32,12.93,3.87,25.85,7.74,38.78,11.62v52.11h52.45v-52.11h38.46Z"/>
+<path d="M1623.76,283.08c-13.79,7.97-34.96,13.02-56.53,13.02-44.68,0-67.6-17.29-67.6-41.38,0-14.18,8.16-25.64,21.95-31.47-10.68-5.63-16.32-15.93-16.32-27.39,0-21.76,20.2-41.18,64.68-41.18,18.26,0,36.32,3.69,49.34,9.32l-10.49,28.75c-12.82-5.63-25.06-7.96-37.3-7.96-19.04,0-27.39,5.44-27.39,13.6,0,7.38,5.05,11.65,16.9,11.65h38.46v29.33h-40.99c-13.21,0-20.01,4.47-20.01,12.63s8.74,13.99,30.3,13.99c14.57,0,31.66-4.27,43.32-11.27l11.66,28.36Z"/>
+<path d="M1358.1,295.22l-.93-139.08h-49.31l14.54,79.25c0,21.17-11.46,30.69-26.42,30.69-9.94,0-17.6-4.26-21.48-13.18-.01-.02-.02-.05-.03-.07-.03-.06-.06-.12-.08-.18-2.17-4.25-3.33-9.83-3.33-16.89v-79.81h-31.63v15.51h6v12h6v36.01h-6v12h-6v12h-5.72c.75,11.92,3.26,22.43,7.48,31.05,8.42,15.27,23.21,23.41,42.94,23.41,5.17,0,10.02-.59,14.53-1.74,9.25-2.36,17.05-7.12,23.04-14.19.64-.75,1.26-1.53,1.86-2.33v15.54h34.54Z"/>
+</svg>
+<div className="sh-sep" style={{width:1,height:20,background:"var(--hairline)",margin:"0 4px"}}/>
 <span className="sh-date" style={{fontSize:12,color:"var(--ink-muted)"}}>{dateStr}</span>
 </div>
 <div className="sh-meta">
+<select value={period} onChange={e=>setPeriod(e.target.value)} className="sh-select" style={{fontSize:12,padding:"0.35rem 0.55rem",minHeight:34}} aria-label="Période d'analyse">
+<option value="month">Mois en cours</option>
+<option value="7d">7 derniers jours</option>
+<option value="30d">30 derniers jours</option>
+<option value="ytd">YTD</option>
+</select>
 <div style={{display:"flex",alignItems:"center",gap:8}}>
 <span style={{fontSize:11,color:"var(--ink-muted)"}}>Objectif</span>
 <span className="sh-num" style={{fontSize:12,fontWeight:600,color:growth>=0?"var(--primary)":"var(--danger)",minWidth:64}}>N-1 {growth>=0?"+":""}{growth}%</span>
@@ -1378,9 +1597,9 @@ return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}
 <button onClick={()=>setTheme(nextTheme)} className="sh-btn" title={`Thème : ${themeLabel}`} aria-label="Changer de thème">
 {themeIcon}<span>{themeLabel}</span>
 </button>
-<button onClick={syncSheets} disabled={syncing} className="sh-btn" data-state={syncStatus==="erreur"?"error":undefined} aria-label="Rafraîchir les données">
+<button onClick={syncSheets} disabled={syncing} className="sh-btn" data-state={syncStatus==="erreur"?"error":undefined} aria-label={`Rafraîchir les données${lastSync?` (dernière sync il y a ${freshState.min} min)`:""}`} title={lastSync?`Sync il y a ${freshState.min} min`:"Jamais synchronisé"}>
 <IconRefresh/>
-<span className="sh-num">{syncing?"sync…":syncStatus==="erreur"?"Erreur":lastSync?lastSync.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"Sync"}</span>
+{syncing?<span className="sh-num">sync…</span>:syncStatus==="erreur"?<span className="sh-num">Erreur</span>:<span className="sh-fresh" data-age={freshState.age}><span className="sh-fresh-dot"/><span className="sh-fresh-time sh-num">{freshState.label}</span></span>}
 </button>
 </div>
 </header>
@@ -1390,7 +1609,7 @@ return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}
 </nav>
 
 <main className="sh-main" style={{filter:blurred?"blur(8px)":"none",transition:"filter 0.3s ease",userSelect:blurred?"none":"auto"}}>
-{vue==="jour" && <VueJour wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} ca_n={ca_n} ca_n1={ca_n1} growth={growth} wxDaily={wxDaily}/>}
+{vue==="jour" && <VueJour wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} ca_n={ca_n} ca_n1={ca_n1} growth={growth} wxDaily={wxDaily} period={period}/>}
 {vue==="mois" && <VueMois ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
 {vue==="annee" && <VueAnnee ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
 {vue==="jours" && <VueJours wxDaily={wxDaily}/>}
@@ -1403,6 +1622,18 @@ return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}
 <span>Swing House Chamonix · Pilotage</span>
 <span className="mono">v2.0</span>
 </footer>
+
+{toasts.length>0&&<div className="sh-toast-wrap" role="status" aria-live="polite">
+{toasts.map(t=>(
+<div key={t.id} className="sh-toast" data-tone={t.tone}>
+<div className="sh-toast-body">
+{t.title&&<div className="sh-toast-title">{t.title}</div>}
+{t.msg&&<div className="sh-toast-msg">{t.msg}</div>}
+</div>
+<button onClick={()=>dismissToast(t.id)} className="sh-toast-close" aria-label="Fermer">×</button>
+</div>
+))}
+</div>}
 
 </div>;
 }
