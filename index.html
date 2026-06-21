@@ -315,27 +315,40 @@ input[type=range]::-moz-range-thumb{
 .sh-alert[data-tone="neg"]{border-color:color-mix(in oklch,var(--danger) 40%, transparent);background:var(--danger-tint);}
 
 /* ─── Mode privé — floute uniquement les chiffres ─── */
-body[data-blurred="true"] :is(
-  .sh-value,
-  .sh-value-lg,
-  .sh-pill,
-  .sh-num,
-  .sh-fresh-time,
-  [data-private="true"],
-  svg text,
-  .recharts-text,
-  .recharts-cartesian-axis text,
-  .recharts-tooltip-wrapper,
-  .recharts-default-tooltip,
-  .sh-table td.num
-){
+/* Cibles HTML standard : la classe et l'attribut s'appliquent au texte directement */
+body[data-blurred="true"] .sh-value,
+body[data-blurred="true"] .sh-value-lg,
+body[data-blurred="true"] .sh-pill,
+body[data-blurred="true"] .sh-num,
+body[data-blurred="true"] .sh-fresh-time,
+body[data-blurred="true"] [data-private="true"],
+body[data-blurred="true"] .sh-table td.num{
   filter:blur(7px);
   -webkit-filter:blur(7px);
   user-select:none;
   transition:filter 220ms ease;
 }
-body[data-blurred="true"] :is(.sh-value,.sh-value-lg,.sh-pill,.sh-num,[data-private="true"]){
+body[data-blurred="true"] .sh-value,
+body[data-blurred="true"] .sh-value-lg,
+body[data-blurred="true"] .sh-pill,
+body[data-blurred="true"] .sh-num,
+body[data-blurred="true"] [data-private="true"]{
   pointer-events:none;
+}
+/* Cibles SVG/chart : Safari iOS n'applique pas correctement filter:blur sur
+   les <text> SVG ciblés par sélecteur ; on floute le conteneur SVG entier.
+   Pour les charts Recharts, c'est aussi voulu — les barres/courbes sont des
+   représentations visuelles de chiffres, donc elles font partie des "chiffres". */
+body[data-blurred="true"] .sh-gauge-svg,
+body[data-blurred="true"] .recharts-wrapper,
+body[data-blurred="true"] .recharts-responsive-container{
+  filter:blur(8px);
+  -webkit-filter:blur(8px);
+  pointer-events:none;
+  transition:filter 220ms ease;
+  /* Hint compositing pour iOS (évite le bug de cache de rendering) */
+  transform:translateZ(0);
+  will-change:filter;
 }
 
 /* ─── Toast ─── */
@@ -679,7 +692,7 @@ const angle=ratio*180;const[x1,y1]=toXY(0);const[x2,y2]=toXY(angle);
 const large=angle>180?1:0;
 const fill=ratio>=1?T.green:ratio>=0.7?T.txt:ratio>=0.4?T.txt2:T.chartMuted;
 return <div style={{textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
-<svg width={size} height={size*0.75} viewBox={`0 0 ${size} ${size*0.75}`}>
+<svg className="sh-gauge-svg" width={size} height={size*0.75} viewBox={`0 0 ${size} ${size*0.75}`}>
 <path d={`M ${toXY(0)[0]} ${toXY(0)[1]} A ${r} ${r} 0 1 1 ${toXY(180)[0]} ${toXY(180)[1]}`} fill="none" stroke={T.card2} strokeWidth={8} strokeLinecap="round"/>
 {ratio>0.01&&<path d={`M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`} fill="none" stroke={fill} strokeWidth={8} strokeLinecap="round"/>}
 <text x={cx} y={cy+1} textAnchor="middle" fontSize={12} fontWeight={600} fontFamily={font} fill={T.txt}>{fmtK(value)}</text>
