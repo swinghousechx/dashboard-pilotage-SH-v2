@@ -314,6 +314,30 @@ input[type=range]::-moz-range-thumb{
 .sh-alert[data-tone="neu"]{border-color:color-mix(in oklch,var(--accent) 40%, transparent);background:var(--accent-tint);}
 .sh-alert[data-tone="neg"]{border-color:color-mix(in oklch,var(--danger) 40%, transparent);background:var(--danger-tint);}
 
+/* ─── Mode privé — floute uniquement les chiffres ─── */
+body[data-blurred="true"] :is(
+  .sh-value,
+  .sh-value-lg,
+  .sh-pill,
+  .sh-num,
+  .sh-fresh-time,
+  [data-private="true"],
+  svg text,
+  .recharts-text,
+  .recharts-cartesian-axis text,
+  .recharts-tooltip-wrapper,
+  .recharts-default-tooltip,
+  .sh-table td.num
+){
+  filter:blur(7px);
+  -webkit-filter:blur(7px);
+  user-select:none;
+  transition:filter 220ms ease;
+}
+body[data-blurred="true"] :is(.sh-value,.sh-value-lg,.sh-pill,.sh-num,[data-private="true"]){
+  pointer-events:none;
+}
+
 /* ─── Toast ─── */
 .sh-toast-wrap{
   position:fixed;bottom:clamp(0.75rem,2vw,1.5rem);right:clamp(0.75rem,2vw,1.5rem);
@@ -689,10 +713,10 @@ const c=bon?T.green:neutre?T.accent:T.red;
 return <div className="sh-alert" data-tone={tone}>
 <div style={{flex:1}}>
 <div style={{fontSize:13,fontWeight:600,color:c}}>{demain?"Demain · ":""}{lbl}</div>
-<div style={{fontSize:11,color:T.txt2,marginTop:2}}>{demain?"Prévision":"Aujourd'hui"} · {rain}mm pluie · objectif {fmtK(objJour)}</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:2}}>{demain?"Prévision":"Aujourd'hui"} · <span data-private="true">{rain}mm</span> pluie · objectif <span data-private="true">{fmtK(objJour)}</span></div>
 </div>
 <div style={{textAlign:"right",minWidth:64}}>
-<div style={{fontSize:24,fontWeight:700,color:c,lineHeight:1,letterSpacing:"-0.025em"}}>{proba}<span style={{fontSize:14}}>%</span></div>
+<div style={{fontSize:24,fontWeight:700,color:c,lineHeight:1,letterSpacing:"-0.025em"}} data-private="true">{proba}<span style={{fontSize:14}}>%</span></div>
 <div style={{fontSize:10,color:T.whisper,marginTop:2}}>probabilité</div>
 </div>
 </div>;
@@ -793,18 +817,18 @@ return <div className="sh-stack">
 <div className="sh-label" style={{marginBottom:6}}>{label}</div>
 <div className="sh-value" style={{marginBottom:4}}>{fmt(n)}</div>
 <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-<span className="sh-sub">{sub} {fmt(n1)}</span>
+<span className="sh-sub">{sub} <span data-private="true">{fmt(n1)}</span></span>
 {n!=null&&n1&&<DeltaBadge d={pct(n,n1)}/>}
 </div>
 {stade&&<div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-<span style={{fontSize:10,color:T.whisper}}>Jour {joursEcoules}/{joursDansLeMois} · {pctMoisEcoule}% du mois</span>
+<span style={{fontSize:10,color:T.whisper}}>Jour <span data-private="true">{joursEcoules}/{joursDansLeMois}</span> · <span data-private="true">{pctMoisEcoule}%</span> du mois</span>
 </div>
 <div style={{height:4,borderRadius:2,background:T.card2,overflow:"hidden",marginBottom:6}}>
 <div style={{height:"100%",width:`${pctMoisEcoule}%`,background:T.primarySoft,borderRadius:2}}/>
 </div>
 <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-<span className="sh-sub">N-1 à ce stade : {fmt(caN1MemeStade)}</span>
+<span className="sh-sub">N-1 à ce stade : <span data-private="true">{fmt(caN1MemeStade)}</span></span>
 {deltaMemeStade!=null&&<DeltaBadge d={deltaMemeStade}/>}
 </div>
 </div>}
@@ -828,11 +852,11 @@ return <div className="sh-stack">
 <div className="sh-label" style={{marginBottom:6}}>{title}</div>
 {wx?<><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
 <span style={{fontSize:28}}>{wmoI(wx.code)}</span>
-<div><div style={{fontSize:18,fontWeight:600,color:T.txt}}>{wx.tmax}°C</div>
-<div style={{fontSize:11,color:T.whisper}}>{wx.rain}mm</div></div>
+<div><div style={{fontSize:18,fontWeight:600,color:T.txt}} data-private="true">{wx.tmax}°C</div>
+<div style={{fontSize:11,color:T.whisper}} data-private="true">{wx.rain}mm</div></div>
 </div>
 <div style={{fontSize:11,color:T.txt2}}>{wmoT(wx.code)}</div>
-{ca!=null&&<div style={{fontSize:12,fontWeight:600,marginTop:6,color:T.txt}}>{fmt(ca)}</div>}
+{ca!=null&&<div style={{fontSize:12,fontWeight:600,marginTop:6,color:T.txt}} data-private="true">{fmt(ca)}</div>}
 </>:<div aria-busy="true" aria-label="Chargement météo">
 <div className="sh-skel sh-skel-block" style={{height:46,marginBottom:8}}/>
 <div className="sh-skel sh-skel-line sh-skel-w-50"/>
@@ -855,8 +879,8 @@ const s=f.rain>8?{l:"Fort",c:T.green}:f.rain>3?{l:"Favorable",c:T.rain}:f.rain>0
 return <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",borderRadius:6,background:i===0?T.card2:"transparent"}}>
 <span style={{fontSize:11,fontWeight:500,color:T.txt2,width:32}}>{f.label}</span>
 <span style={{fontSize:18,width:24}}>{wmoI(f.code)}</span>
-<span style={{fontSize:13,fontWeight:600,width:42,color:T.txt}}>{f.tmax}°C</span>
-<span style={{fontSize:11,color:T.whisper,width:46}}>{f.rain}mm</span>
+<span style={{fontSize:13,fontWeight:600,width:42,color:T.txt}} data-private="true">{f.tmax}°C</span>
+<span style={{fontSize:11,color:T.whisper,width:46}} data-private="true">{f.rain}mm</span>
 <span style={{fontSize:11,fontWeight:600,color:s.c,marginLeft:"auto"}}>{s.l}</span>
 </div>;
 })}
@@ -925,7 +949,7 @@ return <div className="sh-stack">
 <div className="sh-label" style={{marginBottom:6}}>N-1 complet 2025</div>
 <div className="sh-value-lg">{fmt(totalN1F)}</div>
 <div className="sh-label" style={{margin:"12px 0 6px"}}>N-1 même période</div>
-<div style={{fontSize:18,fontWeight:500,color:T.txt2}}>{fmt(totalN1S)}</div>
+<div style={{fontSize:18,fontWeight:500,color:T.txt2}} data-private="true">{fmt(totalN1S)}</div>
 </Card>
 <Card>
 <div className="sh-label" style={{marginBottom:6}}>Projection annuelle N</div>
@@ -1080,10 +1104,10 @@ const sCol=(c===0||c<=2)?T.accent:(c<=48)?T.txt2:isSnow(c)?T.info:f.rain>5?T.gre
 return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:i===0?T.card2:"transparent",border:`1px solid ${T.border}`}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>{f.label}</div>
 <div style={{fontSize:26,margin:"4px 0"}}>{wmoI(f.code)}</div>
-<div style={{fontSize:15,fontWeight:600,color:T.txt}}>{f.tmax}°C</div>
-<div style={{fontSize:11,color:T.whisper,margin:"2px 0"}}>{isSnow(f.code)?`${f.snow}cm`:`${f.rain}mm`}</div>
+<div style={{fontSize:15,fontWeight:600,color:T.txt}} data-private="true">{f.tmax}°C</div>
+<div style={{fontSize:11,color:T.whisper,margin:"2px 0"}} data-private="true">{isSnow(f.code)?`${f.snow}cm`:`${f.rain}mm`}</div>
 <div style={{height:1,background:T.border,margin:"10px 0"}}/>
-<div style={{fontSize:14,fontWeight:600,color:sCol}}>{est?fmtK(est):"—"}</div>
+<div style={{fontSize:14,fontWeight:600,color:sCol}} data-private="true">{est?fmtK(est):"—"}</div>
 </div>;})}
 </div>
 {(()=>{const totalRefDays=condGroups.sun.length+condGroups.cloud.length+condGroups.rain.length+condGroups.snow.length;return <div style={{fontSize:10,color:T.whisper,marginTop:12,lineHeight:1.5}}>Modèle condition-aware sur <strong style={{color:T.txt2}}>{totalRefDays}</strong> jours réels ({condGroups.sun.length}☀ · {condGroups.cloud.length}☁ · {condGroups.rain.length}🌧 · {condGroups.snow.length}❄) · {PERIOD_LABELS[period]||"toute la base"} · Open-Meteo Chamonix</div>;})()}
@@ -1094,10 +1118,10 @@ return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8
 {histWeek.map((d,i)=><div key={i} style={{textAlign:"center",padding:"10px 4px",borderRadius:6,background:T.card2,border:`1px solid ${T.border}`}}>
 <div style={{fontSize:10,color:T.txt3,fontWeight:500}}>{d.label}</div>
 <div style={{fontSize:20,margin:"4px 0"}}>{d.code!=null?wmoI(d.code):"—"}</div>
-<div style={{fontSize:12,fontWeight:500,color:T.txt}}>{d.temp!=null?`${d.temp}°`:"—"}</div>
-<div style={{fontSize:10,color:T.whisper}}>{d.code!=null&&isSnow(d.code)?`${d.snow!=null?d.snow+"cm":"?"}`:(`${d.rain!=null?d.rain+"mm":"—"}`)}</div>
+<div style={{fontSize:12,fontWeight:500,color:T.txt}} data-private="true">{d.temp!=null?`${d.temp}°`:"—"}</div>
+<div style={{fontSize:10,color:T.whisper}} data-private="true">{d.code!=null&&isSnow(d.code)?`${d.snow!=null?d.snow+"cm":"?"}`:(`${d.rain!=null?d.rain+"mm":"—"}`)}</div>
 <div style={{height:1,background:T.border,margin:"6px 0"}}/>
-<div style={{fontSize:12,fontWeight:600,color:d.ca>500?T.green:d.ca>0?T.txt:T.whisper}}>{d.ca>0?fmtK(d.ca):"—"}</div>
+<div style={{fontSize:12,fontWeight:600,color:d.ca>500?T.green:d.ca>0?T.txt:T.whisper}} data-private="true">{d.ca>0?fmtK(d.ca):"—"}</div>
 </div>)}
 </div>
 </Card>
@@ -1108,7 +1132,7 @@ return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8
 {condData.map(c=><div key={c.label}>
 <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
 <span style={{fontSize:13,color:T.txt2}}>{c.ic} {c.label}</span>
-<div><span style={{fontSize:13,fontWeight:600,color:T.txt}}>{fmt(c.v)}</span><span style={{fontSize:10,color:T.whisper,marginLeft:6}}>{c.n}j</span></div>
+<div><span style={{fontSize:13,fontWeight:600,color:T.txt}} data-private="true">{fmt(c.v)}</span><span style={{fontSize:10,color:T.whisper,marginLeft:6}} data-private="true">{c.n}j</span></div>
 </div>
 <div style={{background:T.card2,borderRadius:3,height:5,overflow:"hidden"}}><div style={{width:`${(c.v/maxC)*100}%`,height:"100%",background:T.chartCur,borderRadius:3}}/></div>
 </div>)}
@@ -1120,13 +1144,13 @@ return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8
 <div className="sh-grid sh-grid-2col" style={{gap:10}}>
 <div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:8}}>🌧 Pluie</div>
-<div style={{fontSize:40,fontWeight:700,color:rRain>0.4?T.green:rRain>0.2?T.txt:T.red,letterSpacing:"-0.03em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{rRain>=0?"+":""}{rRain.toFixed(2)}</div>
+<div style={{fontSize:40,fontWeight:700,color:rRain>0.4?T.green:rRain>0.2?T.txt:T.red,letterSpacing:"-0.03em",lineHeight:1,fontVariantNumeric:"tabular-nums"}} data-private="true">{rRain>=0?"+":""}{rRain.toFixed(2)}</div>
 <div style={{fontSize:11,color:T.txt2,marginTop:8}}>{rRain>0.5?"Forte":rRain>0.3?"Modérée":"Faible"}</div>
 <div style={{fontSize:10,color:T.whisper,marginTop:2}}>{rainPairs.length} jours</div>
 </div>
 <div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:8}}>❄ Neige</div>
-{snowPairs.length>3?<><div style={{fontSize:40,fontWeight:700,color:rSnow>0.4?T.green:rSnow>0.2?T.txt:T.red,letterSpacing:"-0.03em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{rSnow>=0?"+":""}{rSnow.toFixed(2)}</div>
+{snowPairs.length>3?<><div style={{fontSize:40,fontWeight:700,color:rSnow>0.4?T.green:rSnow>0.2?T.txt:T.red,letterSpacing:"-0.03em",lineHeight:1,fontVariantNumeric:"tabular-nums"}} data-private="true">{rSnow>=0?"+":""}{rSnow.toFixed(2)}</div>
 <div style={{fontSize:11,color:T.txt2,marginTop:8}}>{rSnow>0.5?"Forte":rSnow>0.3?"Modérée":"Faible"}</div>
 <div style={{fontSize:10,color:T.whisper,marginTop:2}}>{snowPairs.length} jours</div></>:<div style={{fontSize:12,color:T.whisper,paddingTop:20}}>Hors saison</div>}
 </div>
@@ -1139,19 +1163,19 @@ return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8
 <div className="sh-grid sh-grid-3" style={{gap:10}}>
 <div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>MAPE</div>
-<div style={{fontSize:32,fontWeight:700,color:accuracy.mape<25?T.green:accuracy.mape<50?T.accent:T.red,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{accuracy.mape}%</div>
+<div style={{fontSize:32,fontWeight:700,color:accuracy.mape<25?T.green:accuracy.mape<50?T.accent:T.red,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}} data-private="true">{accuracy.mape}%</div>
 <div style={{fontSize:11,color:T.txt2,marginTop:6}}>{accuracy.mape<25?"Excellent":accuracy.mape<50?"Acceptable":"À améliorer"}</div>
 <div style={{fontSize:10,color:T.whisper,marginTop:2}}>erreur relative moy.</div>
 </div>
 <div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>MAE</div>
-<div style={{fontSize:32,fontWeight:700,color:T.txt,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{fmtK(accuracy.mae)}</div>
+<div style={{fontSize:32,fontWeight:700,color:T.txt,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}} data-private="true">{fmtK(accuracy.mae)}</div>
 <div style={{fontSize:11,color:T.txt2,marginTop:6}}>écart absolu moy.</div>
 <div style={{fontSize:10,color:T.whisper,marginTop:2}}>vs réalisé</div>
 </div>
 <div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
 <div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>Biais</div>
-<div style={{fontSize:32,fontWeight:700,color:Math.abs(accuracy.bias)<50?T.green:accuracy.bias>0?T.accent:T.rain,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{accuracy.bias>=0?"+":""}{fmtK(accuracy.bias)}</div>
+<div style={{fontSize:32,fontWeight:700,color:Math.abs(accuracy.bias)<50?T.green:accuracy.bias>0?T.accent:T.rain,letterSpacing:"-0.025em",lineHeight:1,fontVariantNumeric:"tabular-nums"}} data-private="true">{accuracy.bias>=0?"+":""}{fmtK(accuracy.bias)}</div>
 <div style={{fontSize:11,color:T.txt2,marginTop:6}}>{accuracy.bias>50?"Surestime":accuracy.bias<-50?"Sous-estime":"Neutre"}</div>
 <div style={{fontSize:10,color:T.whisper,marginTop:2}}>pred − réalisé</div>
 </div>
@@ -1279,7 +1303,7 @@ function VueSimu({period}){
           {i===topIdx&&<span className="sh-pill sh-pill-pos" style={{position:"absolute",top:12,right:12}}>Top</span>}
           <div className="sh-label" style={{marginBottom:6}}>{bayLabels[i]}</div>
           <div className="sh-value" style={{marginBottom:4}}>{h}<span style={{fontSize:14,color:T.whisper,marginLeft:2}}>h</span></div>
-          <div className="sh-sub" style={{marginBottom:10}}>{share}% du total</div>
+          <div className="sh-sub" style={{marginBottom:10}}><span data-private="true">{share}%</span> du total</div>
           <div style={{height:4,background:T.card2,borderRadius:2,overflow:"hidden"}}>
             <div style={{width:`${share}%`,height:"100%",background:C[i],borderRadius:2}}/>
           </div>
@@ -1292,7 +1316,7 @@ function VueSimu({period}){
           {[["YTD",grandTotal+"h"],["Moy./mois",avgMois+"h"],["Moy./jour",avgJourAll+"h"]].map(([l,v])=>(
             <div key={l} style={{display:"flex",justifyContent:"space-between",fontSize:11}}>
               <span style={{color:T.whisper}}>{l}</span>
-              <span style={{fontWeight:600,color:T.txt,fontVariantNumeric:"tabular-nums"}}>{v}</span>
+              <span style={{fontWeight:600,color:T.txt,fontVariantNumeric:"tabular-nums"}} data-private="true">{v}</span>
             </div>
           ))}
         </div>
@@ -1319,8 +1343,8 @@ function VueSimu({period}){
       <div className="sh-section-head">
         <div className="sh-h2">Détail journalier</div>
         <div className="sh-meta-r">
-          Total période <span style={{fontWeight:700,color:T.txt}}>{filteredTotal}h</span>
-          <span style={{marginLeft:8}}>{filtered.length}j · moy. {avgJour}h/j</span>
+          Total période <span style={{fontWeight:700,color:T.txt}} data-private="true">{filteredTotal}h</span>
+          <span style={{marginLeft:8}} data-private="true">{filtered.length}j · moy. {avgJour}h/j</span>
         </div>
       </div>
       <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
@@ -1369,15 +1393,15 @@ const pctMrr=caMoisMoyen>0?Math.round(mrr/caMoisMoyen*100):0;
 const Row=({label,val,sub,green})=><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${T.border}`,gap:12}}>
 <span style={{fontSize:13,color:T.txt2}}>{label}</span>
 <div style={{textAlign:"right"}}>
-<span style={{fontSize:15,fontWeight:600,color:green?T.green:T.txt,fontVariantNumeric:"tabular-nums"}}>{val}</span>
-{sub&&<div style={{fontSize:10,color:T.whisper,marginTop:2}}>{sub}</div>}
+<span style={{fontSize:15,fontWeight:600,color:green?T.green:T.txt,fontVariantNumeric:"tabular-nums"}} data-private="true">{val}</span>
+{sub&&<div style={{fontSize:10,color:T.whisper,marginTop:2}} data-private="true">{sub}</div>}
 </div>
 </div>;
 
 const SliderInput=({label,val,set,max=50})=><div style={{marginBottom:18}}>
 <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
 <span style={{fontSize:12,fontWeight:500,color:T.txt2}}>{label}</span>
-<span style={{fontSize:14,fontWeight:700,color:T.txt,fontVariantNumeric:"tabular-nums"}}>{val}</span>
+<span style={{fontSize:14,fontWeight:700,color:T.txt,fontVariantNumeric:"tabular-nums"}} data-private="true">{val}</span>
 </div>
 <input type="range" min={0} max={max} value={val} onChange={e=>set(+e.target.value)} style={{width:"100%"}}/>
 </div>;
@@ -1401,7 +1425,7 @@ return <div className="sh-stack">
 <Card style={{textAlign:"center"}}>
 <div className="sh-label" style={{marginBottom:6}}>Membres actifs</div>
 <div className="sh-value">{totalM}</div>
-<div className="sh-sub" style={{marginTop:6}}>{engM} mensuel · {engA} annuel · {libre} libre</div>
+<div className="sh-sub" style={{marginTop:6}} data-private="true">{engM} mensuel · {engA} annuel · {libre} libre</div>
 </Card>
 <Card style={{textAlign:"center"}}>
 <div className="sh-label" style={{marginBottom:6}}>ARPU</div>
@@ -1411,7 +1435,7 @@ return <div className="sh-stack">
 <Card style={{textAlign:"center"}}>
 <div className="sh-label" style={{marginBottom:6}}>MRR / CA mensuel</div>
 <div className="sh-value" style={{color:pctMrr>30?T.green:pctMrr>15?T.txt:T.red}}>{pctMrr}%</div>
-<div className="sh-sub" style={{marginTop:6}}>revenu garanti sur ~{fmt(caMoisMoyen)}</div>
+<div className="sh-sub" style={{marginTop:6}}>revenu garanti sur ~<span data-private="true">{fmt(caMoisMoyen)}</span></div>
 </Card>
 </div>
 
@@ -1433,7 +1457,7 @@ return <div className="sh-stack">
 {isEte&&<div className="sh-alert" data-tone="pos">
 <div style={{flex:1}}>
 <div style={{fontSize:13,fontWeight:600,color:T.green,marginBottom:4}}>☀ Mode été · accès illimité juin–août</div>
-<div style={{fontSize:12,color:T.txt2,lineHeight:1.5}}>Les membres utilisent les simulateurs sans limite. Le MRR de <strong style={{color:T.txt}}>{fmt(mrr)}</strong> est garanti indépendamment de l'utilisation.</div>
+<div style={{fontSize:12,color:T.txt2,lineHeight:1.5}}>Les membres utilisent les simulateurs sans limite. Le MRR de <strong style={{color:T.txt}} data-private="true">{fmt(mrr)}</strong> est garanti indépendamment de l'utilisation.</div>
 </div>
 </div>}
 
@@ -1518,6 +1542,11 @@ useEffect(()=>{
   onScroll();
   return ()=>window.removeEventListener("scroll",onScroll);
 },[]);
+
+// Mode privé : pose un data-attribute sur body, le CSS floute uniquement les chiffres
+useEffect(()=>{
+  document.body.setAttribute("data-blurred",blurred?"true":"false");
+},[blurred]);
 
 // Tick toutes les 30s pour réévaluer la fraîcheur des données
 useEffect(()=>{
@@ -1683,7 +1712,7 @@ return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}
 {navItems.map(n=><NavBtn key={n.k} l={n.l} a={vue===n.k} onClick={()=>setVue(n.k)}/>)}
 </nav>
 
-<main className="sh-main" style={{filter:blurred?"blur(8px)":"none",transition:"filter 0.3s ease",userSelect:blurred?"none":"auto"}}>
+<main className="sh-main">
 {vue==="jour" && <VueJour wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} ca_n={ca_n} ca_n1={ca_n1} growth={growth} wxDaily={wxDaily} period={period}/>}
 {vue==="mois" && <VueMois ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
 {vue==="annee" && <VueAnnee ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
