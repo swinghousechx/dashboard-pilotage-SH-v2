@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="color-scheme" content="dark light"/>
+<title>Swing House — Pilotage</title>
+<link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/swinghousechx/BASELOGO/refs/heads/main/SH-Icone%20Balle%20%2B%20tee%20noir.svg"/>
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/swinghousechx/BASELOGO/refs/heads/main/SH-Icone%20Balle%20%2B%20tee%20noir.svg"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+<script src="https://unpkg.com/recharts@2.8.0/umd/Recharts.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ─── Palette OKLCH — dark par défaut, light si préférence système ─── */
+:root{
+  --bg:           oklch(0.155 0.005 250);
+  --surface:      oklch(0.195 0.005 250);
+  --surface-2:    oklch(0.225 0.006 250);
+  --hairline:     oklch(0.265 0.006 250);
+  --hairline-2:   oklch(0.32 0.006 250);
+
+  --ink:          oklch(0.97 0.005 250);
+  --ink-2:        oklch(0.82 0.006 250);
+  --ink-muted:    oklch(0.62 0.008 250);
+  --ink-whisper:  oklch(0.48 0.008 250);
+
+  --primary:      oklch(0.66 0.14 152);
+  --primary-soft: oklch(0.40 0.08 152);
+  --accent:       oklch(0.72 0.14 75);
+  --danger:       oklch(0.68 0.18 30);
+  --info:         oklch(0.70 0.12 235);
+
+  --primary-tint: color-mix(in oklch, var(--primary) 14%, transparent);
+  --danger-tint:  color-mix(in oklch, var(--danger)  14%, transparent);
+  --accent-tint:  color-mix(in oklch, var(--accent)  14%, transparent);
+
+  --radius: 8px;
+  --chart-h: 240px;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:           oklch(0.985 0.003 250);
+    --surface:      oklch(1 0 0);
+    --surface-2:    oklch(0.965 0.003 250);
+    --hairline:     oklch(0.91 0.005 250);
+    --hairline-2:   oklch(0.84 0.006 250);
+
+    --ink:          oklch(0.18 0.008 250);
+    --ink-2:        oklch(0.32 0.008 250);
+    --ink-muted:    oklch(0.50 0.008 250);
+    --ink-whisper:  oklch(0.62 0.008 250);
+
+    --primary:      oklch(0.48 0.14 152);
+    --primary-soft: oklch(0.70 0.10 152);
+    --accent:       oklch(0.58 0.14 75);
+    --danger:       oklch(0.52 0.20 28);
+    --info:         oklch(0.55 0.14 235);
+  }
+}
+/* override manuel via data-theme sur <html> (toggle utilisateur) */
+:root[data-theme="dark"]{
+  --bg:           oklch(0.155 0.005 250);
+  --surface:      oklch(0.195 0.005 250);
+  --surface-2:    oklch(0.225 0.006 250);
+  --hairline:     oklch(0.265 0.006 250);
+  --hairline-2:   oklch(0.32 0.006 250);
+  --ink:          oklch(0.97 0.005 250);
+  --ink-2:        oklch(0.82 0.006 250);
+  --ink-muted:    oklch(0.62 0.008 250);
+  --ink-whisper:  oklch(0.48 0.008 250);
+  --primary:      oklch(0.66 0.14 152);
+  --primary-soft: oklch(0.40 0.08 152);
+  --accent:       oklch(0.72 0.14 75);
+  --danger:       oklch(0.68 0.18 30);
+  --info:         oklch(0.70 0.12 235);
+}
+:root[data-theme="light"]{
+  --bg:           oklch(0.985 0.003 250);
+  --surface:      oklch(1 0 0);
+  --surface-2:    oklch(0.965 0.003 250);
+  --hairline:     oklch(0.91 0.005 250);
+  --hairline-2:   oklch(0.84 0.006 250);
+  --ink:          oklch(0.18 0.008 250);
+  --ink-2:        oklch(0.32 0.008 250);
+  --ink-muted:    oklch(0.50 0.008 250);
+  --ink-whisper:  oklch(0.62 0.008 250);
+  --primary:      oklch(0.48 0.14 152);
+  --primary-soft: oklch(0.70 0.10 152);
+  --accent:       oklch(0.58 0.14 75);
+  --danger:       oklch(0.52 0.20 28);
+  --info:         oklch(0.55 0.14 235);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:var(--bg);}
+body{
+  font-family:'DM Sans',system-ui,-apple-system,sans-serif;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+input,select,button,textarea{font-family:inherit;font-variant-numeric:tabular-nums;}
+.sh-num{font-variant-numeric:tabular-nums;letter-spacing:-0.01em;}
+
+/* Scrollbars discrètes alignées sur la hairline */
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--hairline-2);border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:var(--ink-muted);}
+*{scrollbar-width:thin;scrollbar-color:var(--hairline-2) transparent;}
+
+/* ─── Topbar ─── */
+.sh-topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in oklch, var(--bg) 86%, transparent);
+  border-bottom:1px solid var(--hairline);
+  padding:0.75rem clamp(0.85rem, 2vw, 1.5rem);
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;
+}
+.sh-brand{display:flex;align-items:center;gap:0.75rem;min-width:0;}
+.sh-brand-mark{display:flex;align-items:center;gap:0.5rem;}
+.sh-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--primary);
+  box-shadow:0 0 0 0 var(--primary-tint);
+  animation:shPulse 2.2s ease-in-out infinite;
+}
+@keyframes shPulse{
+  0%,100%{opacity:1;box-shadow:0 0 0 0 var(--primary-tint);}
+  50%{opacity:.55;box-shadow:0 0 0 8px transparent;}
+}
+.sh-brand-text{font-size:0.86rem;font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
+.sh-brand-sub{font-size:0.78rem;color:var(--ink-muted);font-weight:400;}
+.sh-meta{display:flex;align-items:center;gap:0.85rem;flex-wrap:wrap;}
+
+/* ─── Nav tabs ─── */
+.sh-nav{
+  display:flex;gap:2px;overflow-x:auto;padding:0.5rem clamp(0.85rem, 2vw, 1.5rem);
+  border-bottom:1px solid var(--hairline);
+  background:var(--bg);
+  scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.sh-nav::-webkit-scrollbar{display:none;}
+.sh-tab{
+  flex-shrink:0;
+  font-size:0.82rem;font-weight:500;color:var(--ink-muted);
+  background:transparent;border:1px solid transparent;
+  padding:0.45rem 0.85rem;border-radius:7px;
+  cursor:pointer;outline:none;
+  transition:color 150ms ease, background 150ms ease, border-color 150ms ease;
+  min-height:38px;display:inline-flex;align-items:center;
+}
+.sh-tab:hover{color:var(--ink-2);background:var(--surface);}
+.sh-tab[data-active="true"]{
+  color:var(--primary);background:var(--surface);
+  border-color:var(--hairline);font-weight:600;
+}
+.sh-tab:focus-visible{outline:2px solid var(--primary-tint);outline-offset:2px;}
+.sh-tab:active{transform:scale(0.98);}
+
+/* ─── Buttons (refresh, blur, theme) ─── */
+.sh-btn{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  background:var(--surface-2);
+  border:1px solid var(--hairline-2);
+  color:var(--ink-2);
+  font-size:0.78rem;font-weight:500;
+  padding:0.4rem 0.75rem;border-radius:var(--radius);
+  cursor:pointer;outline:none;min-height:36px;
+  transition:border-color 150ms ease, color 150ms ease, background 150ms ease;
+}
+.sh-btn:hover{border-color:var(--primary);color:var(--primary);}
+.sh-btn:focus-visible{outline:2px solid var(--primary-tint);outline-offset:2px;}
+.sh-btn:active{transform:scale(0.97);}
+.sh-btn:disabled{cursor:wait;opacity:.65;}
+.sh-btn[data-state="error"]{border-color:var(--danger);color:var(--danger);}
+.sh-btn[data-active="true"]{background:var(--primary);color:var(--bg);border-color:var(--primary);}
+.sh-btn .sh-icon{width:14px;height:14px;display:inline-block;}
+.sh-btn .sh-icon-refresh{transition:transform 400ms cubic-bezier(0.34, 1.56, 0.64, 1);}
+.sh-btn:hover .sh-icon-refresh{transform:rotate(-180deg);}
+
+/* ─── Range slider unified across browsers ─── */
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  background:transparent;cursor:pointer;height:24px;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:4px;border-radius:2px;background:var(--hairline-2);
+}
+input[type=range]::-moz-range-track{
+  height:4px;border-radius:2px;background:var(--hairline-2);
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--primary);border:2px solid var(--bg);
+  margin-top:-5px;cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--primary);border:2px solid var(--bg);cursor:pointer;
+}
+
+/* ─── Select ─── */
+.sh-select{
+  background:var(--surface);color:var(--ink);
+  border:1px solid var(--hairline);border-radius:var(--radius);
+  padding:0.5rem 0.75rem;
+  font-size:16px; /* iOS pas de zoom au focus */
+  font-weight:500;cursor:pointer;outline:none;
+  transition:border-color 150ms ease;
+}
+.sh-select:hover{border-color:var(--hairline-2);}
+.sh-select:focus-visible{border-color:var(--primary);outline:2px solid var(--primary-tint);outline-offset:1px;}
+
+/* ─── Cards / panels ─── */
+.sh-card{
+  background:var(--surface);
+  border:1px solid var(--hairline);
+  border-radius:var(--radius);
+  padding:clamp(0.85rem, 2vw, 1.25rem);
+  transition:border-color 150ms ease;
+}
+.sh-card:hover{border-color:var(--hairline-2);}
+.sh-section-head{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:0.85rem;gap:0.5rem;flex-wrap:wrap;
+}
+.sh-h2{
+  font-size:clamp(0.88rem, 2.2vw, 0.95rem);
+  font-weight:600;color:var(--ink);letter-spacing:-0.005em;
+}
+.sh-meta-r{font-size:0.72rem;color:var(--ink-whisper);}
+.sh-label{font-size:0.72rem;font-weight:500;color:var(--ink-muted);}
+.sh-value{
+  font-size:clamp(1.35rem, 4.5vw, 1.6rem);font-weight:600;color:var(--ink);
+  letter-spacing:-0.02em;font-variant-numeric:tabular-nums;
+}
+.sh-value-lg{
+  font-size:clamp(1.6rem, 6vw, 2rem);font-weight:600;color:var(--ink);
+  letter-spacing:-0.025em;font-variant-numeric:tabular-nums;
+}
+.sh-sub{font-size:0.72rem;color:var(--ink-whisper);}
+
+.sh-pill{
+  display:inline-flex;align-items:center;gap:0.25rem;
+  padding:2px 7px;border-radius:99px;
+  font-size:0.7rem;font-weight:600;font-variant-numeric:tabular-nums;
+  border:1px solid transparent;
+}
+.sh-pill-pos{background:var(--primary-tint);color:var(--primary);border-color:color-mix(in oklch,var(--primary) 30%, transparent);}
+.sh-pill-neg{background:var(--danger-tint);color:var(--danger);border-color:color-mix(in oklch,var(--danger) 30%, transparent);}
+.sh-pill-neu{background:var(--surface-2);color:var(--ink-muted);border-color:var(--hairline);}
+
+/* ─── Grids ─── */
+.sh-grid{display:grid;gap:clamp(0.6rem, 1.5vw, 0.85rem);}
+.sh-grid-kpi{grid-template-columns:repeat(auto-fit,minmax(160px,1fr));}
+.sh-grid-3{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));}
+.sh-grid-2col{grid-template-columns:repeat(auto-fit,minmax(280px,1fr));}
+.sh-grid-5{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));}
+.sh-grid-7{grid-template-columns:repeat(7,1fr);}
+@media (max-width:600px){
+  .sh-grid-7{grid-template-columns:repeat(4,1fr);}
+}
+@media (max-width:380px){
+  .sh-grid-7{grid-template-columns:repeat(3,1fr);}
+  .sh-grid-kpi{grid-template-columns:repeat(2,1fr);}
+}
+
+/* ─── Tables ─── */
+.sh-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.sh-table{width:100%;border-collapse:collapse;min-width:480px;}
+.sh-table th{
+  text-align:left;font-size:0.7rem;font-weight:500;
+  color:var(--ink-muted);letter-spacing:0.02em;text-transform:none;
+  padding:0.5rem 0.7rem;border-bottom:1px solid var(--hairline);
+}
+.sh-table td{
+  padding:0.7rem;font-size:0.84rem;color:var(--ink-2);
+  border-bottom:1px solid var(--hairline);
+}
+.sh-table tr:hover td{background:var(--surface-2);}
+.sh-table .num{text-align:right;font-variant-numeric:tabular-nums;}
+
+/* ─── Layout ─── */
+.sh-main{
+  max-width:1180px;margin:0 auto;
+  padding:clamp(1rem, 3vw, 2rem) clamp(0.85rem, 2vw, 1.5rem);
+}
+.sh-stack{display:flex;flex-direction:column;gap:clamp(0.85rem, 2vw, 1.25rem);}
+
+.sh-alert{
+  display:flex;align-items:center;gap:0.85rem;
+  padding:0.85rem 1rem;border-radius:var(--radius);
+  border:1px solid var(--hairline);background:var(--surface);
+}
+.sh-alert[data-tone="pos"]{border-color:color-mix(in oklch,var(--primary) 40%, transparent);background:var(--primary-tint);}
+.sh-alert[data-tone="neu"]{border-color:color-mix(in oklch,var(--accent) 40%, transparent);background:var(--accent-tint);}
+.sh-alert[data-tone="neg"]{border-color:color-mix(in oklch,var(--danger) 40%, transparent);background:var(--danger-tint);}
+
+/* ─── Footer ─── */
+.sh-footer{
+  max-width:1180px;margin:2rem auto 0;
+  padding:1rem clamp(0.85rem, 2vw, 1.5rem) 2rem;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;
+  font-size:0.72rem;color:var(--ink-whisper);
+  border-top:1px solid var(--hairline);
+}
+.sh-footer .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:0.68rem;}
+
+/* ─── Mobile ─── */
+@media (max-width:600px){
+  .sh-topbar{flex-direction:column;align-items:stretch;gap:0.6rem;padding:0.6rem 0.85rem;}
+  .sh-topbar .sh-brand{justify-content:space-between;}
+  .sh-meta{justify-content:space-between;}
+  .sh-meta .sh-date{display:none;}
+  .sh-meta .sh-sep{display:none;}
+}
+
+/* ─── Motion safety ─── */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:0.01ms!important;animation-iteration-count:1!important;
+    transition-duration:0.01ms!important;scroll-behavior:auto!important;
+  }
+  .sh-dot{animation:none;}
+}
+
+/* ─── Recharts surcharges minimes (couleurs gérées via JS palette) ─── */
+.recharts-tooltip-wrapper{outline:none;}
+.recharts-default-tooltip{
+  background:var(--surface)!important;
+  border:1px solid var(--hairline)!important;
+  border-radius:var(--radius)!important;
+  color:var(--ink)!important;
+  font-family:'DM Sans',system-ui,sans-serif!important;
+  padding:0.5rem 0.75rem!important;
+}
+.recharts-tooltip-label{color:var(--ink)!important;font-weight:600!important;}
+.recharts-text{fill:var(--ink-muted);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
+const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+ResponsiveContainer, LineChart, Line, ComposedChart, Area,
+ScatterChart, Scatter, LabelList, ReferenceLine } = Recharts;
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyYNmL4HpimT0sPeIVMnpg_QYjzteULoFo4azYni0mn9N6o5joy8x-SOZFLyiMp11sU/exec";
+const LAT = 45.923, LON = 6.869;
+const font = "'DM Sans', system-ui, sans-serif";
+
+// ── PALETTE — résolue depuis les CSS variables et rafraîchie au switch thème ──
+function resolvePalette(){
+  const cs = getComputedStyle(document.documentElement);
+  const v = name => cs.getPropertyValue(name).trim();
+  return {
+    bg:        v('--bg'),
+    card:      v('--surface'),
+    card2:     v('--surface-2'),
+    border:    v('--hairline'),
+    border2:   v('--hairline-2'),
+    txt:       v('--ink'),
+    txt2:      v('--ink-2'),
+    txt3:      v('--ink-muted'),
+    whisper:   v('--ink-whisper'),
+    green:     v('--primary'),
+    primarySoft: v('--primary-soft'),
+    red:       v('--danger'),
+    accent:    v('--accent'),
+    rain:      v('--info'),
+    snow:      v('--ink-muted'),
+    chartCur:  v('--primary'),
+    chartPrev: v('--hairline-2'),
+    chartMuted:v('--hairline'),
+    chartObj:  v('--accent'),
+  };
+}
+// T est muté in place : les références closure dans le JSX continuent de pointer
+// vers le même objet, et un force-render après mutation propage les nouvelles valeurs.
+const T = {};
+function syncT(){ Object.assign(T, resolvePalette()); }
+if (typeof document !== "undefined") syncT();
+
+// ── DONNÉES STATIQUES ─────────────────────────────────────────────────────────
+const CA_N_STATIC = {
+Jan:16945.16, Fév:16368.67, Mar:16379.90, Avr:6782.25,
+Mai:4015.50, Jun:null, Jul:null, Aoû:null, Sep:null, Oct:null, Nov:null, Déc:null
+};
+const CA_N1_STATIC = {
+Jan:0, Fév:6064.89, Mar:16321.74, Avr:6155.80,
+Mai:1935.00, Jun:2562.81, Jul:5276.40, Aoû:6070.35,
+Sep:3955.25, Oct:3709.00, Nov:5068.50, Déc:13410.53
+};
+let DJ_N1 = {
+"01":new Array(31).fill(0),
+"02":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,621.77,396.52,307.4,1022.2,153,371,417.5,793.5,15.75,135.5,393.5,467.25,502,468,0,0,0],
+"03":[839.22,168.5,510,104.5,635.5,1022.5,338.5,594.67,657.4,958.66,686.5,666.49,794,1037,586.5,260,160,291.5,425.5,543.55,448.5,926.8,709.5,170,194.5,620.5,505.45,239.5,1065.5,35.5,125.5],
+"04":[166,207.5,196.5,135,121.5,144,0,515.4,196.5,192,0,94,150.5,481,157.5,374.5,705.5,183,326.9,342,115,207,402,278,0,158,125.5,0,104,77,0],
+"05":[193,108.5,166.5,313.5,0,163,335.5,231.5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,187,0,43.5,34,0,38.5,120.5],
+"06":[0,0,0,192,147,382.5,229.5,102.5,0,80,105.5,134.5,0,0,0,0,855.91,0,58,0,0,0,0,35,59.5,44.5,71.4,65,0,0,0],
+"07":[269,40.5,940.5,64.5,9.5,235,0,696,77.5,252,409.5,19.5,149.5,0,34,148.5,188.9,0,139,0,0,152.5,50.5,68,285.5,656.5,206,0,175,9,0],
+"08":new Array(31).fill(0),"09":new Array(30).fill(0),
+"10":new Array(31).fill(0),"11":new Array(30).fill(0),"12":new Array(31).fill(0),
+};
+let DJ_N = {
+"01":[1066,719.75,525.12,514.65,55.5,420.5,581.25,1021.5,1168,369.5,144,38.75,494.32,683.5,428.75,981.5,766.52,138.87,0,484.23,678.11,415.83,795.02,1170.97,245.27,0,354.8,812.78,880.2,314.92,675.05],
+"02":[504.68,0,891.71,981.06,593.2,1121.05,216.45,449.36,0,551.79,915.16,928.98,1103.9,817.5,765.48,112.5,646.52,1003.48,801.06,1101.45,545.8,659.92,0,308.33,508.87,278.62,435,126.8,0,0,0],
+"03":[143.4,142.5,905.96,925.6,834.29,858.74,764.58,52.05,337.5,862.39,762.82,733,1344.67,1138.39,189.82,166.48,273.05,312.45,110.55,403.53,453.89,548.85,0,600.15,672.66,862.77,197.65,538.5,130.1,77.75,1035.81],
+"04":[363.18,662.75,1237.56,294.2,285.15,0,140.6,116.38,432.5,119.36,61.5,677.6,0,860.45,0,61,939.97,265.68,147.92,0,0,66,9.5,8,0,0,0,0,0,0,0],
+"05":new Array(31).fill(null),"06":new Array(30).fill(null),
+"07":new Array(31).fill(null),"08":new Array(31).fill(null),
+"09":new Array(30).fill(null),"10":new Array(31).fill(null),
+"11":new Array(30).fill(null),"12":new Array(31).fill(null),
+};
+const MONTHS = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
+const MM = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+const MONTH_MAP = {
+"JANVIER":0,"FEVRIER":1,"FÉVRIER":1,"MARS":2,"AVRIL":3,"MAI":4,
+"JUIN":5,"JUILLET":6,"AOUT":7,"AOÛT":7,"SEPTEMBRE":8,
+"OCTOBRE":9,"NOVEMBRE":10,"DECEMBRE":11,"DÉCEMBRE":11
+};
+
+
+// ── STATS SIMU ────────────────────────────────────────────────────────────────
+let SIMU_DATA = [
+  {d:"01/02",b1:3,b2:1,b3:4.5},{d:"03/02",b1:5,b2:3,b3:4.5},{d:"04/02",b1:2,b2:2.5,b3:7},
+  {d:"05/02",b1:0,b2:3,b3:6},{d:"06/02",b1:4.5,b2:7,b3:6.5},{d:"07/02",b1:3,b2:1,b3:5.5},
+  {d:"08/02",b1:1.5,b2:2,b3:5},{d:"10/02",b1:3.5,b2:3,b3:5},{d:"11/02",b1:3,b2:1,b3:4},
+  {d:"12/02",b1:4,b2:5,b3:8},{d:"13/02",b1:0,b2:3,b3:3.5},{d:"14/02",b1:3,b2:3,b3:5.5},
+  {d:"15/02",b1:2,b2:7,b3:6},{d:"17/02",b1:0,b2:6,b3:7},{d:"18/02",b1:0,b2:4,b3:6},
+  {d:"19/02",b1:2.5,b2:4.5,b3:7},{d:"20/02",b1:0,b2:3,b3:5},{d:"21/02",b1:0,b2:3.5,b3:6.5},
+  {d:"22/02",b1:1,b2:4,b3:6.5},{d:"24/02",b1:0,b2:3,b3:3},{d:"25/02",b1:3,b2:2.5,b3:6},
+  {d:"26/02",b1:1.5,b2:0.5,b3:4},{d:"27/02",b1:1.5,b2:0.5,b3:3.5},{d:"28/02",b1:0,b2:1.5,b3:1.5},
+  {d:"01/03",b1:0,b2:1.5,b3:5},{d:"03/03",b1:1,b2:5,b3:4},{d:"04/03",b1:2.5,b2:2,b3:5},
+  {d:"05/03",b1:3.5,b2:2.5,b3:3},{d:"06/03",b1:3.5,b2:2,b3:5.5},{d:"07/03",b1:1,b2:1,b3:3},
+  {d:"08/03",b1:0,b2:0,b3:3},{d:"10/03",b1:3.5,b2:1,b3:4},{d:"11/03",b1:3,b2:2,b3:6.5},
+  {d:"12/03",b1:1.5,b2:2.5,b3:2},{d:"13/03",b1:5.5,b2:6,b3:6},{d:"14/03",b1:6.5,b2:7.5,b3:7},
+  {d:"15/03",b1:1.5,b2:2.5,b3:3.5},{d:"17/03",b1:1,b2:0,b3:5.5},{d:"18/03",b1:2.5,b2:1.5,b3:2.5},
+  {d:"19/03",b1:0,b2:0,b3:1},{d:"20/03",b1:0,b2:0,b3:3},{d:"21/03",b1:3,b2:4.5,b3:3},
+  {d:"22/03",b1:2,b2:2,b3:6},{d:"24/03",b1:2,b2:3,b3:3.5},{d:"25/03",b1:2,b2:2,b3:6},
+  {d:"26/03",b1:2.5,b2:4,b3:6.5},{d:"27/03",b1:2,b2:2.5,b3:4},{d:"28/03",b1:2.5,b2:2.5,b3:6},
+  {d:"29/03",b1:0,b2:1,b3:2},{d:"31/03",b1:3.5,b2:2.5,b3:5},
+  {d:"01/04",b1:1.5,b2:3,b3:7},{d:"02/04",b1:2,b2:2,b3:0},{d:"03/04",b1:4.5,b2:5.5,b3:9},
+  {d:"04/04",b1:1,b2:3,b3:4},{d:"05/04",b1:0,b2:1.5,b3:2},{d:"07/04",b1:0,b2:2,b3:1},
+  {d:"08/04",b1:0,b2:1,b3:0},{d:"09/04",b1:1.5,b2:1.5,b3:5},{d:"10/04",b1:1,b2:0,b3:1.5},
+  {d:"11/04",b1:0,b2:0,b3:1},{d:"12/04",b1:4,b2:3,b3:6.5},{d:"14/04",b1:5,b2:5.5,b3:5},
+  {d:"16/04",b1:1,b2:0,b3:3},{d:"19/04",b1:3,b2:2,b3:4},{d:"21/04",b1:0,b2:0,b3:1},
+  {d:"22/04",b1:0,b2:0,b3:1},{d:"25/04",b1:0,b2:1,b3:0},{d:"26/04",b1:0,b2:1,b3:0},
+  {d:"23/05",b1:0,b2:0,b3:1},
+];
+let SIMU_M_LABELS = {"01":"Jan","02":"Fév","03":"Mar","04":"Avr","05":"Mai"};
+
+// ── PARSEURS DYNAMIQUES ───────────────────────────────────────────────────────
+function parseDailyCa(rows) {
+  const result = {};
+  if (!Array.isArray(rows)) return result;
+  rows.forEach(function(row) {
+    const raw = row[1];
+    if (!raw) return;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return;
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dayIdx = d.getDate() - 1;
+    if (dayIdx < 0 || dayIdx > 30) return;
+    const v = row[10];
+    const val = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(",", ".")) || 0;
+    if (!result[mm]) result[mm] = new Array(31).fill(null);
+    result[mm][dayIdx] = val;
+  });
+  return result;
+}
+
+function parseH(v) {
+  if (v == null) return 0;
+  if (typeof v === "number") return v;
+  const s = String(v);
+  if (/T\d{2}:\d{2}/.test(s)) return 0;
+  return parseFloat(s.replace(",", ".")) || 0;
+}
+
+function parseSimuRows(rows) {
+  const result = [];
+  if (!Array.isArray(rows)) return result;
+  const MONTH_LABELS = {"01":"Jan","02":"Fév","03":"Mar","04":"Avr","05":"Mai","06":"Jun",
+    "07":"Jul","08":"Aoû","09":"Sep","10":"Oct","11":"Nov","12":"Déc"};
+  rows.forEach(function(row) {
+    const raw = row[0];
+    if (!raw) return;
+    const d = new Date(raw);
+    if (isNaN(d.getTime())) return;
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const b1 = parseH(row[1]);
+    const b2 = parseH(row[2]);
+    const b3 = parseH(row[3]);
+    result.push({d: dd + "/" + mm, b1: b1, b2: b2, b3: b3});
+  });
+  if (result.length > 0) {
+    const months = [...new Set(result.map(r => r.d.split("/")[1]))].sort();
+    Object.keys(SIMU_M_LABELS).forEach(k => delete SIMU_M_LABELS[k]);
+    months.forEach(function(mm) { if (MONTH_LABELS[mm]) SIMU_M_LABELS[mm] = MONTH_LABELS[mm]; });
+  }
+  return result;
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const fmt = v => v==null?"—":new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(v);
+const fmtK = v => !v?"0":v>=1000?`${(v/1000).toFixed(1)}k€`:`${Math.round(v)}€`;
+const pct = (a,b) => b?(((a-b)/b)*100):null;
+const clrD = d => d==null?T.txt3:d>0?T.green:d<0?T.red:T.txt2;
+const arrD = d => d==null?"":d>0?"▲":d<0?"▼":"—";
+const wmoI = c => {if(c===0)return"☀";if(c<=2)return"⛅";if(c===3)return"☁";if(c<=48)return"🌫";if(c<=55)return"🌦";if(c<=65)return"🌧";if(c<=75)return"❄";if(c<=82)return"🌦";return"⛈";};
+const wmoT = c => {if(c===0)return"Soleil";if(c<=2)return"Peu nuageux";if(c===3)return"Couvert";if(c<=48)return"Brouillard";if(c<=55)return"Bruine";if(c<=65)return"Pluie";if(c<=75)return"Neige";if(c<=82)return"Averses";return"Orage";};
+function pearson(xs,ys){const n=xs.length;if(n<3)return 0;const mx=xs.reduce((a,b)=>a+b,0)/n,my=ys.reduce((a,b)=>a+b,0)/n;const num=xs.reduce((a,x,i)=>a+(x-mx)*(ys[i]-my),0);const den=Math.sqrt(xs.reduce((a,x)=>a+(x-mx)**2,0)*ys.reduce((a,y)=>a+(y-my)**2,0));return den?(num/den):0;}
+function estimateCA(rain,pairs){if(!pairs.length)return null;const n=pairs.length,mx=pairs.reduce((a,p)=>a+p.x,0)/n,my=pairs.reduce((a,p)=>a+p.y,0)/n;const b=pairs.reduce((a,p)=>a+(p.x-mx)*(p.y-my),0)/Math.max(pairs.reduce((a,p)=>a+(p.x-mx)**2,0),1);return Math.max(0,Math.round((my-b*mx)+b*rain));}
+function probaObj(rain,obj,pairs){if(!pairs.length||!obj)return null;const pool=pairs.filter(p=>Math.abs(p.x-rain)<=3);const p=pool.length>=5?pool:pairs;return Math.round(p.filter(x=>x.y>=obj).length/p.length*100);}
+
+function parseSheetRows(rows) {
+const result = {};
+if (!Array.isArray(rows)) return result;
+rows.forEach(row => {
+for (let c = 0; c < Math.min(row.length, 4); c++) {
+const cell = String(row[c] ?? "").toUpperCase().replace(/\s+/g," ").trim();
+if (!cell.includes("TOTAL")) continue;
+let mIdx = -1;
+Object.entries(MONTH_MAP).forEach(([k,v]) => { if(cell.includes(k)) mIdx = v; });
+if (mIdx === -1) continue;
+for (let i = 8; i < row.length; i++) {
+const raw = String(row[i] ?? "").replace(/\s/g,"").replace(",",".");
+const val = parseFloat(raw.replace(/[^\d.-]/g,""));
+if (val > 0 && !isNaN(val)) { result[MONTHS[mIdx]] = val; break; }
+}
+break;
+}
+});
+return result;
+}
+
+// ── UI ATOMS ──────────────────────────────────────────────────────────────────
+const Card = ({children,style={},className=""}) =>
+  <div className={"sh-card "+className} style={style}>{children}</div>;
+
+const SLbl = ({children,style={}}) =>
+  <div className="sh-label" style={{marginBottom:10,...style}}>{children}</div>;
+
+const DeltaBadge = ({d}) => {
+  if (d == null) return null;
+  const cls = d > 0 ? "sh-pill sh-pill-pos" : d < 0 ? "sh-pill sh-pill-neg" : "sh-pill sh-pill-neu";
+  return <span className={cls}>{arrD(d)} {Math.abs(d).toFixed(1)}%</span>;
+};
+
+const NavBtn = ({l,a,onClick}) =>
+  <button onClick={onClick} className="sh-tab" data-active={a?"true":"false"} role="tab" aria-selected={a}>{l}</button>;
+
+const CTooltip = ({active,payload,label}) => {
+if(!active||!payload?.length)return null;
+return <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",fontSize:12,color:T.txt}}>
+<div style={{fontWeight:600,marginBottom:4,color:T.txt}}>{label}</div>
+{payload.map((p,i)=><div key={i} style={{display:"flex",gap:8,alignItems:"center",color:T.txt2}}>
+<span style={{width:8,height:8,borderRadius:2,background:p.color,flexShrink:0}}/>
+<span>{p.name}</span>
+<span style={{fontWeight:600,color:T.txt,marginLeft:"auto"}}>{p.value!=null?fmt(p.value):"—"}</span>
+</div>)}
+</div>;
+};
+
+function Gauge({value,target,label,size=120}){
+const r=46,cx=size/2,cy=size/2+8;
+const toXY=deg=>{const rad=((deg-180)*Math.PI/180);return[cx+r*Math.cos(rad),cy+r*Math.sin(rad)];};
+const ratio=target>0?Math.min(value/target,1.1):0;
+const angle=ratio*180;const[x1,y1]=toXY(0);const[x2,y2]=toXY(angle);
+const large=angle>180?1:0;
+const fill=ratio>=1?T.green:ratio>=0.7?T.txt:ratio>=0.4?T.txt2:T.chartMuted;
+return <div style={{textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center"}}>
+<svg width={size} height={size*0.75} viewBox={`0 0 ${size} ${size*0.75}`}>
+<path d={`M ${toXY(0)[0]} ${toXY(0)[1]} A ${r} ${r} 0 1 1 ${toXY(180)[0]} ${toXY(180)[1]}`} fill="none" stroke={T.card2} strokeWidth={8} strokeLinecap="round"/>
+{ratio>0.01&&<path d={`M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`} fill="none" stroke={fill} strokeWidth={8} strokeLinecap="round"/>}
+<text x={cx} y={cy+1} textAnchor="middle" fontSize={12} fontWeight={600} fontFamily={font} fill={T.txt}>{fmtK(value)}</text>
+<text x={cx} y={cy+13} textAnchor="middle" fontSize={9} fontFamily={font} fill={T.txt3}>/ {fmtK(target)}</text>
+</svg>
+<div style={{fontSize:11,fontWeight:500,color:T.txt2,marginTop:-2}}>{label}</div>
+</div>;
+}
+
+function ProgressRow({m,n,n1}){
+if(!n1&&!n)return null;
+const d=pct(n,n1);
+const w=n1>0?Math.min((n/n1)*100,140):0;
+return <div style={{display:"flex",alignItems:"center",gap:10,padding:"5px 0"}}>
+<div style={{width:28,fontSize:12,fontWeight:500,color:T.txt2,flexShrink:0}}>{m}</div>
+<div style={{flex:1,position:"relative",height:8,background:T.card2,borderRadius:4,overflow:"hidden"}}>
+<div style={{position:"absolute",left:0,top:0,width:`${Math.min(w*0.714,100)}%`,height:"100%",background:n>=n1?T.green:T.txt2,borderRadius:4,opacity:0.85}}/>
+<div style={{position:"absolute",left:"71.4%",top:0,width:"1.5px",height:"100%",background:T.border2}}/>
+</div>
+<div style={{width:48,textAlign:"right",flexShrink:0}}>{d!=null?<DeltaBadge d={d}/>:null}</div>
+<div style={{width:54,fontSize:11,color:T.whisper,textAlign:"right",flexShrink:0,fontVariantNumeric:"tabular-nums"}}>{fmtK(n||0)}</div>
+</div>;
+}
+
+function AlerteBanner({rain,proba,objJour,demain}){
+if(proba==null)return null;
+const bon=proba>=60,neutre=proba>=40;
+const tone=bon?"pos":neutre?"neu":"neg";
+const lbl=bon?"Fort potentiel":neutre?"Potentiel modéré":"Journée difficile";
+const c=bon?T.green:neutre?T.accent:T.red;
+return <div className="sh-alert" data-tone={tone}>
+<div style={{flex:1}}>
+<div style={{fontSize:13,fontWeight:600,color:c}}>{demain?"Demain · ":""}{lbl}</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:2}}>{demain?"Prévision":"Aujourd'hui"} · {rain}mm pluie · objectif {fmtK(objJour)}</div>
+</div>
+<div style={{textAlign:"right",minWidth:64}}>
+<div style={{fontSize:24,fontWeight:700,color:c,lineHeight:1,letterSpacing:"-0.025em"}}>{proba}<span style={{fontSize:14}}>%</span></div>
+<div style={{fontSize:10,color:T.whisper,marginTop:2}}>probabilité</div>
+</div>
+</div>;
+}
+
+function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily}){
+const today=new Date(),mIdx=today.getMonth(),mKey=MONTHS[mIdx],mm=MM[mIdx],dd=today.getDate()-1;
+const caJN1=DJ_N1[mm]?.[dd]??null;
+const objJour=caJN1!=null?Math.round(caJN1*(1+growth/100)):null;
+const caMN=ca_n[mKey]??0,caMN1=ca_n1[mKey]??0;
+const joursDansLeMois=new Date(today.getFullYear(),mIdx+1,0).getDate();
+const joursEcoules=dd+1;
+const pctMoisEcoule=Math.round(joursEcoules/joursDansLeMois*100);
+const caN1MemeStade=(DJ_N1[mm]||[]).slice(0,joursEcoules).reduce((a,v)=>a+(v||0),0);
+const deltaMemeStade=caN1MemeStade>0?pct(caMN,caN1MemeStade):null;
+const moisNOK=MONTHS.filter(m=>ca_n[m]!=null);
+const totalN=moisNOK.reduce((a,m)=>a+(ca_n[m]||0),0);
+const totalN1S=moisNOK.reduce((a,m)=>a+(ca_n1[m]||0),0);
+const objMois=caMN1?Math.round(caMN1*(1+growth/100)):null;
+const objAnnuel=MONTHS.reduce((a,m)=>a+(ca_n1[m]?Math.round(ca_n1[m]*(1+growth/100)):0),0);
+const pairs=useMemo(()=>{
+const p=[];
+Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0)p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0)p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
+return p;
+},[wxDaily]);
+const rainAuj=wxToday?.rain??null,rainDem=wxForecast?.[1]?.rain??null;
+const probaAuj=rainAuj!=null?probaObj(rainAuj,objJour,pairs):null;
+const probaDem=rainDem!=null?probaObj(rainDem,objJour,pairs):null;
+return <div className="sh-stack">
+{probaAuj!=null&&<AlerteBanner rain={rainAuj} proba={probaAuj} objJour={objJour} demain={false}/>}
+{probaDem!=null&&<AlerteBanner rain={rainDem} proba={probaDem} objJour={objJour} demain={true}/>}
+<div className="sh-grid sh-grid-kpi">
+{[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1",stade:true},{label:"YTD",n:totalN,n1:totalN1S,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub,stade},i)=>(
+<Card key={i}>
+<div className="sh-label" style={{marginBottom:6}}>{label}</div>
+<div className="sh-value" style={{marginBottom:4}}>{fmt(n)}</div>
+<div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+<span className="sh-sub">{sub} {fmt(n1)}</span>
+{n!=null&&n1&&<DeltaBadge d={pct(n,n1)}/>}
+</div>
+{stade&&<div style={{marginTop:10,paddingTop:10,borderTop:`1px solid ${T.border}`}}>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+<span style={{fontSize:10,color:T.whisper}}>Jour {joursEcoules}/{joursDansLeMois} · {pctMoisEcoule}% du mois</span>
+</div>
+<div style={{height:4,borderRadius:2,background:T.card2,overflow:"hidden",marginBottom:6}}>
+<div style={{height:"100%",width:`${pctMoisEcoule}%`,background:T.primarySoft,borderRadius:2}}/>
+</div>
+<div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+<span className="sh-sub">N-1 à ce stade : {fmt(caN1MemeStade)}</span>
+{deltaMemeStade!=null&&<DeltaBadge d={deltaMemeStade}/>}
+</div>
+</div>}
+</Card>
+))}
+</div>
+<div className="sh-grid sh-grid-2col">
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Progression objectifs</div></div>
+<div style={{display:"flex",justifyContent:"space-around",paddingTop:4,flexWrap:"wrap",gap:8}}>
+<Gauge value={caMN} target={objMois||1} label={`CA ${mKey}`} size={110}/>
+<Gauge value={totalN} target={objAnnuel} label="Annuel" size={110}/>
+<Gauge value={totalN} target={totalN1S||1} label="vs N-1" size={110}/>
+</div>
+</Card>
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Météo Chamonix</div></div>
+<div className="sh-grid sh-grid-2col" style={{gap:10}}>
+{[{title:"Aujourd'hui",wx:wxToday,ca:null},{title:"Même jour N-1",wx:wxHist,ca:caJN1}].map(({title,wx,ca},i)=>(
+<div key={i} style={{background:T.card2,borderRadius:8,padding:"12px",border:`1px solid ${T.border}`}}>
+<div className="sh-label" style={{marginBottom:6}}>{title}</div>
+{wx?<><div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4}}>
+<span style={{fontSize:28}}>{wmoI(wx.code)}</span>
+<div><div style={{fontSize:18,fontWeight:600,color:T.txt}}>{wx.tmax}°C</div>
+<div style={{fontSize:11,color:T.whisper}}>{wx.rain}mm</div></div>
+</div>
+<div style={{fontSize:11,color:T.txt2}}>{wmoT(wx.code)}</div>
+{ca!=null&&<div style={{fontSize:12,fontWeight:600,marginTop:6,color:T.txt}}>{fmt(ca)}</div>}
+</>:<div style={{fontSize:12,color:T.whisper,paddingTop:8}}>Chargement…</div>}
+</div>
+))}
+</div>
+</Card>
+</div>
+<div className="sh-grid sh-grid-2col">
+<Card>
+<div className="sh-section-head"><div className="sh-h2">N vs N-1 par mois</div><span className="sh-meta-r">│ = N-1</span></div>
+{MONTHS.filter(m=>ca_n[m]!=null||ca_n1[m]>0).map(m=><ProgressRow key={m} m={m} n={ca_n[m]||0} n1={ca_n1[m]||0}/>)}
+</Card>
+{wxForecast.length>0&&<Card>
+<div className="sh-section-head"><div className="sh-h2">Prévisions 5 jours</div></div>
+<div style={{display:"flex",flexDirection:"column",gap:4,marginTop:4}}>
+{wxForecast.map((f,i)=>{
+const s=f.rain>8?{l:"Fort",c:T.green}:f.rain>3?{l:"Favorable",c:T.rain}:f.rain>0?{l:"Neutre",c:T.txt2}:{l:"Faible",c:T.whisper};
+return <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 10px",borderRadius:6,background:i===0?T.card2:"transparent"}}>
+<span style={{fontSize:11,fontWeight:500,color:T.txt2,width:32}}>{f.label}</span>
+<span style={{fontSize:18,width:24}}>{wmoI(f.code)}</span>
+<span style={{fontSize:13,fontWeight:600,width:42,color:T.txt}}>{f.tmax}°C</span>
+<span style={{fontSize:11,color:T.whisper,width:46}}>{f.rain}mm</span>
+<span style={{fontSize:11,fontWeight:600,color:s.c,marginLeft:"auto"}}>{s.l}</span>
+</div>;
+})}
+</div>
+</Card>}
+</div>
+</div>;
+}
+
+function VueMois({ca_n,ca_n1,growth}){
+const obj=Object.fromEntries(MONTHS.map(m=>[m,ca_n1[m]?Math.round(ca_n1[m]*(1+growth/100)):null]));
+const data=MONTHS.map(m=>({m,"N(2026)":ca_n[m],"N-1(2025)":ca_n1[m],"Obj":obj[m]}));
+return <div className="sh-stack">
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Objectifs mensuels</div></div>
+<div style={{display:"flex",gap:10,overflowX:"auto",paddingTop:8,paddingBottom:6,scrollSnapType:"x mandatory",WebkitOverflowScrolling:"touch"}}>
+{MONTHS.map(m=>{
+const v=ca_n[m]??null;
+const t=obj[m]||1;
+return <div key={m} style={{flexShrink:0,scrollSnapAlign:"start",textAlign:"center",opacity:v==null?0.4:1}}>
+<Gauge value={v??0} target={t} label={m} size={100}/>
+{v==null&&<div style={{fontSize:9,color:T.whisper,marginTop:-2}}>à venir</div>}
+</div>;})}
+</div>
+</Card>
+<Card>
+<div className="sh-section-head"><div className="sh-h2">CA mensuel · N vs N-1 vs Objectif</div></div>
+<ResponsiveContainer width="100%" height={260}>
+<BarChart data={data} barCategoryGap="22%" margin={{top:4,right:4,left:-10,bottom:0}}>
+<CartesianGrid stroke={T.border} vertical={false}/>
+<XAxis dataKey="m" tick={{fontSize:11,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<YAxis tickFormatter={v=>v?`${(v/1000).toFixed(0)}k`:"0"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<Tooltip content={<CTooltip/>} cursor={{fill:T.card2}}/>
+<Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8,color:T.txt2}} iconSize={8} iconType="square"/>
+<Bar dataKey="N-1(2025)" fill={T.chartPrev} radius={[3,3,0,0]}/>
+<Bar dataKey="N(2026)" fill={T.chartCur} radius={[3,3,0,0]}/>
+<Bar dataKey="Obj" fill="transparent" stroke={T.chartObj} strokeWidth={1.5} strokeDasharray="5 3" radius={[3,3,0,0]}/>
+</BarChart>
+</ResponsiveContainer>
+</Card>
+</div>;
+}
+
+function VueAnnee({ca_n,ca_n1,growth}){
+const moisNOK=MONTHS.filter(m=>ca_n[m]!=null);
+const totalN=moisNOK.reduce((a,m)=>a+(ca_n[m]||0),0);
+const totalN1S=moisNOK.reduce((a,m)=>a+(ca_n1[m]||0),0);
+const totalN1F=MONTHS.reduce((a,m)=>a+(ca_n1[m]||0),0);
+const moisComp=moisNOK.filter(m=>ca_n1[m]>0);
+const ratioNum=moisComp.reduce((a,m)=>a+(ca_n[m]||0),0);
+const ratioDen=moisComp.reduce((a,m)=>a+(ca_n1[m]||0),0);
+const growthRatio=ratioDen>0?ratioNum/ratioDen:1;
+const moisRestants=MONTHS.filter(m=>ca_n[m]==null);
+const projRestant=moisRestants.reduce((a,m)=>a+((ca_n1[m]||0)*growthRatio),0);
+const proj=Math.round(totalN+projRestant);
+const objAnnuel=MONTHS.reduce((a,m)=>a+(ca_n1[m]?Math.round(ca_n1[m]*(1+growth/100)):0),0);
+let cN=0,cN1=0;
+const cumData=MONTHS.map(m=>{cN1+=ca_n1[m]||0;if(ca_n[m]!=null)cN+=ca_n[m];return{m,"N-1":Math.round(cN1),"N":ca_n[m]!=null?Math.round(cN):null,"Obj":Math.round(objAnnuel/12*(MONTHS.indexOf(m)+1))};});
+return <div className="sh-stack">
+<div className="sh-grid sh-grid-3">
+<Card style={{textAlign:"center"}}><Gauge value={totalN} target={objAnnuel} label="CA N annuel" size={160}/>
+<DeltaBadge d={pct(totalN,totalN1S)}/>
+<div style={{fontSize:11,color:T.whisper,marginTop:6}}>vs N-1 même période</div>
+</Card>
+<Card>
+<div className="sh-label" style={{marginBottom:6}}>N-1 complet 2025</div>
+<div className="sh-value-lg">{fmt(totalN1F)}</div>
+<div className="sh-label" style={{margin:"12px 0 6px"}}>N-1 même période</div>
+<div style={{fontSize:18,fontWeight:500,color:T.txt2}}>{fmt(totalN1S)}</div>
+</Card>
+<Card>
+<div className="sh-label" style={{marginBottom:6}}>Projection annuelle N</div>
+<div className="sh-value-lg">{fmt(proj)}</div>
+<div style={{marginTop:6}}><DeltaBadge d={pct(proj,totalN1F)}/></div>
+<div style={{fontSize:11,color:T.whisper,marginTop:6}}>vs N-1 complet</div>
+<div style={{fontSize:10,color:T.whisper,marginTop:8,lineHeight:1.4}}>Réel + mois restants × N-1 × {growthRatio>0?`+${Math.round((growthRatio-1)*100)}%`:"—"} (croissance observée)</div>
+</Card>
+</div>
+<Card>
+<div className="sh-section-head"><div className="sh-h2">CA cumulé · N vs N-1 vs Objectif</div></div>
+<ResponsiveContainer width="100%" height={260}>
+<LineChart data={cumData} margin={{top:4,right:4,left:-10,bottom:0}}>
+<CartesianGrid stroke={T.border} vertical={false}/>
+<XAxis dataKey="m" tick={{fontSize:11,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<YAxis tickFormatter={v=>v?`${(v/1000).toFixed(0)}k`:"0"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<Tooltip content={<CTooltip/>}/>
+<Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8,color:T.txt2}} iconSize={8}/>
+<Line type="monotone" dataKey="N-1" stroke={T.chartPrev} strokeWidth={2} dot={false}/>
+<Line type="monotone" dataKey="N" stroke={T.chartCur} strokeWidth={2.5} dot={{r:3,fill:T.chartCur}} connectNulls={false}/>
+<Line type="monotone" dataKey="Obj" stroke={T.chartObj} strokeWidth={1.5} strokeDasharray="6 3" dot={false}/>
+</LineChart>
+</ResponsiveContainer>
+</Card>
+</div>;
+}
+
+function VueJours({wxDaily}){
+const keys=[
+{k:"n1-02",l:"Fév 25"},{k:"n1-03",l:"Mar 25"},{k:"n1-04",l:"Avr 25"},{k:"n1-05",l:"Mai 25"},
+{k:"n1-06",l:"Jun 25"},{k:"n1-07",l:"Jul 25"},{k:"n1-08",l:"Aoû 25"},{k:"n1-09",l:"Sep 25"},
+{k:"n1-10",l:"Oct 25"},{k:"n1-11",l:"Nov 25"},{k:"n1-12",l:"Déc 25"},
+{k:"01",l:"Jan 26"},{k:"02",l:"Fév 26"},{k:"03",l:"Mar 26"},{k:"04",l:"Avr 26"},
+{k:"05",l:"Mai 26"},{k:"06",l:"Jun 26"},{k:"07",l:"Jul 26"},{k:"08",l:"Aoû 26"},
+{k:"09",l:"Sep 26"},{k:"10",l:"Oct 26"},{k:"11",l:"Nov 26"},{k:"12",l:"Déc 26"},
+];
+const autoSel=useMemo(()=>{const mm=MM[new Date().getMonth()];return DJ_N[mm]?mm:`n1-${mm}`;},[]);
+const [sel,setSel]=useState(autoSel);
+const isN=!sel.startsWith("n1");
+const rawMM=isN?sel:sel.replace("n1-","");
+const caArr=isN?(DJ_N[sel]||[]):(DJ_N1[rawMM]||[]);
+const ca2Arr=isN?(DJ_N1[sel]||[]):(DJ_N[rawMM]||[]);
+const wx=wxDaily[sel]||[];
+const yr=isN?"2026":"2025",yr2=isN?"2025":"2026";
+const data=caArr.map((ca,i)=>({j:i+1,[`CA ${yr}`]:ca||0,[`CA ${yr2}`]:ca2Arr[i]||0,rain:wx[i]?.rain??null}));
+return <div className="sh-stack">
+<div style={{display:"flex",alignItems:"center",gap:10}}>
+<span style={{fontSize:12,color:T.txt3,flexShrink:0}}>Mois</span>
+<select value={sel} onChange={e=>setSel(e.target.value)} className="sh-select" style={{flexGrow:1,maxWidth:240}}>
+{keys.map(({k,l})=><option key={k} value={k}>{l}</option>)}
+</select>
+</div>
+<Card>
+<div className="sh-section-head"><div className="sh-h2">CA journalier + précipitations</div></div>
+<ResponsiveContainer width="100%" height={300}>
+<ComposedChart data={data} barCategoryGap="15%" margin={{top:4,right:30,left:-10,bottom:0}}>
+<defs>
+<linearGradient id="rainGrad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stopColor={T.rain} stopOpacity={0.4}/>
+<stop offset="100%" stopColor={T.rain} stopOpacity={0}/>
+</linearGradient>
+</defs>
+<CartesianGrid stroke={T.border} vertical={false}/>
+<XAxis dataKey="j" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<YAxis yAxisId="ca" tickFormatter={v=>`${v}€`} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<YAxis yAxisId="rain" orientation="right" tickFormatter={v=>`${v}mm`} tick={{fontSize:10,fontFamily:font,fill:T.rain}} axisLine={false} tickLine={false}/>
+<Tooltip contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:8,color:T.txt,fontFamily:font,fontSize:11}} formatter={(v,n)=>n.startsWith("CA")?fmt(v):`${v?.toFixed?.(1)}mm`}/>
+<Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8,color:T.txt2}} iconSize={8} iconType="square"/>
+<Bar yAxisId="ca" dataKey={`CA ${yr}`} fill={T.chartCur} radius={[2,2,0,0]}/>
+<Bar yAxisId="ca" dataKey={`CA ${yr2}`} fill={T.chartPrev} radius={[2,2,0,0]}/>
+<Area yAxisId="rain" type="monotone" dataKey="rain" name="Pluie(mm)" fill="url(#rainGrad)" stroke={T.rain} strokeWidth={1.5}/>
+</ComposedChart>
+</ResponsiveContainer>
+</Card>
+</div>;
+}
+
+const isSnow=c=>c!=null&&((c>=71&&c<=77)||(c===85||c===86));
+const isRain=c=>c!=null&&!isSnow(c)&&c>=51;
+function VueMeteo({wxToday,wxForecast,wxHist,wxDaily}){
+const rainPairs=useMemo(()=>{
+const p=[];
+Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isRain(wx[i].code))p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isRain(wx[i].code))p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
+return p;
+},[wxDaily]);
+const snowPairs=useMemo(()=>{
+const p=[];
+Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isSnow(wx[i].code))p.push({x:+(wx[i].snow||0).toFixed(1),y:ca});});});
+Object.entries(DJ_N).forEach(([mm,arr])=>{const wx=wxDaily[mm]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0&&isSnow(wx[i].code))p.push({x:+(wx[i].snow||0).toFixed(1),y:ca});});});
+return p;
+},[wxDaily]);
+const pairs=useMemo(()=>[...rainPairs,...snowPairs],[rainPairs,snowPairs]);
+const rRain=pearson(rainPairs.map(p=>p.x),rainPairs.map(p=>p.y));
+const rSnow=pearson(snowPairs.map(p=>p.x),snowPairs.map(p=>p.y));
+const condGroups=useMemo(()=>{
+const g={sun:[],cloud:[],rain:[],snow:[]};
+const all=[...Object.entries(DJ_N1).flatMap(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i]}));}),
+...Object.entries(DJ_N).flatMap(([mm,arr])=>{const wx=wxDaily[mm]||[];return(arr||[]).map((ca,i)=>({ca,wx:wx[i]}));})];
+all.forEach(({ca,wx})=>{if(!wx||ca<=0)return;const c=wx.code;if(c===0||c<=2)g.sun.push(ca);else if(c<=48)g.cloud.push(ca);else if(isSnow(c))g.snow.push(ca);else g.rain.push(ca);});
+return g;
+},[wxDaily]);
+const avg=a=>a.length?Math.round(a.reduce((x,y)=>x+y,0)/a.length):null;
+const condData=[{label:"Soleil",ic:"☀",v:avg(condGroups.sun)||320,n:condGroups.sun.length},{label:"Nuageux",ic:"☁",v:avg(condGroups.cloud)||480,n:condGroups.cloud.length},{label:"Pluie",ic:"🌧",v:avg(condGroups.rain)||720,n:condGroups.rain.length},{label:"Neige",ic:"❄",v:avg(condGroups.snow)||900,n:condGroups.snow.length}];
+const maxC=Math.max(...condData.map(c=>c.v));
+const histWeek=useMemo(()=>{
+const today=new Date(),res=[];
+for(let i=6;i>=0;i--){const d=new Date(today);d.setFullYear(d.getFullYear()-1);d.setDate(d.getDate()-i);const mm=String(d.getMonth()+1).padStart(2,"0"),dd=d.getDate()-1;const wx=(wxDaily[`n1-${mm}`]||[])[dd];const ca=(DJ_N1[mm]||[])[dd]||0;res.push({label:d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric"}),ca,rain:wx?.rain??null,snow:wx?.snow??null,temp:wx?.tmax??null,code:wx?.code??null});}
+return res;
+},[wxDaily]);
+return <div className="sh-stack">
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Prévisions J+5 · CA estimé</div></div>
+<div className="sh-grid sh-grid-5">
+{wxForecast.map((f,i)=>{const est=estimateCA(f.rain,pairs);const s=f.rain>8?T.green:f.rain>3?T.rain:f.rain>0?T.txt2:T.whisper;
+return <div key={i} style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:i===0?T.card2:"transparent",border:`1px solid ${T.border}`}}>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:6}}>{f.label}</div>
+<div style={{fontSize:26,margin:"4px 0"}}>{wmoI(f.code)}</div>
+<div style={{fontSize:15,fontWeight:600,color:T.txt}}>{f.tmax}°C</div>
+<div style={{fontSize:11,color:T.whisper,margin:"2px 0"}}>{isSnow(f.code)?`${f.snow}cm`:`${f.rain}mm`}</div>
+<div style={{height:1,background:T.border,margin:"10px 0"}}/>
+<div style={{fontSize:14,fontWeight:600,color:s}}>{est?fmtK(est):"—"}</div>
+</div>;})}
+</div>
+<div style={{fontSize:10,color:T.whisper,marginTop:12}}>Régression sur {pairs.length} jours réels · Open-Meteo Chamonix</div>
+</Card>
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Cette semaine N-1 (2025)</div></div>
+<div className="sh-grid sh-grid-7" style={{gap:6}}>
+{histWeek.map((d,i)=><div key={i} style={{textAlign:"center",padding:"10px 4px",borderRadius:6,background:T.card2,border:`1px solid ${T.border}`}}>
+<div style={{fontSize:10,color:T.txt3,fontWeight:500}}>{d.label}</div>
+<div style={{fontSize:20,margin:"4px 0"}}>{d.code!=null?wmoI(d.code):"—"}</div>
+<div style={{fontSize:12,fontWeight:500,color:T.txt}}>{d.temp!=null?`${d.temp}°`:"—"}</div>
+<div style={{fontSize:10,color:T.whisper}}>{d.code!=null&&isSnow(d.code)?`${d.snow!=null?d.snow+"cm":"?"}`:(`${d.rain!=null?d.rain+"mm":"—"}`)}</div>
+<div style={{height:1,background:T.border,margin:"6px 0"}}/>
+<div style={{fontSize:12,fontWeight:600,color:d.ca>500?T.green:d.ca>0?T.txt:T.whisper}}>{d.ca>0?fmtK(d.ca):"—"}</div>
+</div>)}
+</div>
+</Card>
+<div className="sh-grid sh-grid-2col">
+<Card>
+<div className="sh-section-head"><div className="sh-h2">CA moyen par condition</div></div>
+<div style={{display:"flex",flexDirection:"column",gap:12,marginTop:4}}>
+{condData.map(c=><div key={c.label}>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+<span style={{fontSize:13,color:T.txt2}}>{c.ic} {c.label}</span>
+<div><span style={{fontSize:13,fontWeight:600,color:T.txt}}>{fmt(c.v)}</span><span style={{fontSize:10,color:T.whisper,marginLeft:6}}>{c.n}j</span></div>
+</div>
+<div style={{background:T.card2,borderRadius:3,height:5,overflow:"hidden"}}><div style={{width:`${(c.v/maxC)*100}%`,height:"100%",background:T.chartCur,borderRadius:3}}/></div>
+</div>)}
+</div>
+</Card>
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Corrélation météo × CA</div></div>
+<div style={{fontSize:11,color:T.whisper,lineHeight:1.5,marginBottom:12}}>Pearson r entre précipitations et CA. Proche de <strong style={{color:T.txt2}}>+1</strong> = mauvais temps = meilleurs jours.</div>
+<div className="sh-grid sh-grid-2col" style={{gap:10}}>
+<div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:8}}>🌧 Pluie</div>
+<div style={{fontSize:40,fontWeight:700,color:rRain>0.4?T.green:rRain>0.2?T.txt:T.red,letterSpacing:"-0.03em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{rRain>=0?"+":""}{rRain.toFixed(2)}</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:8}}>{rRain>0.5?"Forte":rRain>0.3?"Modérée":"Faible"}</div>
+<div style={{fontSize:10,color:T.whisper,marginTop:2}}>{rainPairs.length} jours</div>
+</div>
+<div style={{textAlign:"center",padding:"14px 8px",borderRadius:8,background:T.card2,border:`1px solid ${T.border}`}}>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:8}}>❄ Neige</div>
+{snowPairs.length>3?<><div style={{fontSize:40,fontWeight:700,color:rSnow>0.4?T.green:rSnow>0.2?T.txt:T.red,letterSpacing:"-0.03em",lineHeight:1,fontVariantNumeric:"tabular-nums"}}>{rSnow>=0?"+":""}{rSnow.toFixed(2)}</div>
+<div style={{fontSize:11,color:T.txt2,marginTop:8}}>{rSnow>0.5?"Forte":rSnow>0.3?"Modérée":"Faible"}</div>
+<div style={{fontSize:10,color:T.whisper,marginTop:2}}>{snowPairs.length} jours</div></>:<div style={{fontSize:12,color:T.whisper,paddingTop:20}}>Hors saison</div>}
+</div>
+</div>
+</Card>
+</div>
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Scatter météo × CA</div></div>
+<div style={{fontSize:11,color:T.whisper,marginBottom:14,lineHeight:1.5}}>Chaque point = un jour passé. Une tendance montante de gauche à droite confirme l'effet météo sur les réservations.</div>
+<div className="sh-grid sh-grid-2col" style={{gap:16,gridTemplateColumns:snowPairs.length>3?undefined:"1fr"}}>
+<div>
+<div style={{fontSize:11,fontWeight:600,color:T.rain,marginBottom:8}}>🌧 Pluie × CA — {rainPairs.length} obs.</div>
+{rainPairs.length>5?<ResponsiveContainer width="100%" height={220}>
+<ScatterChart margin={{top:4,right:12,bottom:20,left:-10}}>
+<CartesianGrid stroke={T.border} vertical={false}/>
+<XAxis dataKey="x" type="number" name="Pluie" unit="mm" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"Pluie (mm)",position:"insideBottom",offset:-4,fontSize:9,fill:T.txt3}}/>
+<YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}€`} tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<Tooltip cursor={{strokeDasharray:"3 3",stroke:T.border2}} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:8,color:T.txt,fontFamily:font,fontSize:11}} formatter={(v,n)=>n==="CA"?fmt(v):`${v}mm`}/>
+<Scatter data={rainPairs} fill={T.rain} fillOpacity={0.45} r={4}/>
+</ScatterChart>
+</ResponsiveContainer>:<div style={{textAlign:"center",padding:"40px 0",color:T.whisper}}>Chargement…</div>}
+</div>
+{snowPairs.length>3&&<div>
+<div style={{fontSize:11,fontWeight:600,color:T.txt3,marginBottom:8}}>❄ Neige × CA — {snowPairs.length} obs.</div>
+<ResponsiveContainer width="100%" height={220}>
+<ScatterChart margin={{top:4,right:12,bottom:20,left:-10}}>
+<CartesianGrid stroke={T.border} vertical={false}/>
+<XAxis dataKey="x" type="number" name="Neige" unit="cm" tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} label={{value:"Neige (cm)",position:"insideBottom",offset:-4,fontSize:9,fill:T.txt3}}/>
+<YAxis dataKey="y" name="CA" tickFormatter={v=>`${v}€`} tick={{fontSize:9,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+<Tooltip cursor={{strokeDasharray:"3 3",stroke:T.border2}} contentStyle={{background:T.card,border:`1px solid ${T.border}`,borderRadius:8,color:T.txt,fontFamily:font,fontSize:11}} formatter={(v,n)=>n==="CA"?fmt(v):`${v}cm`}/>
+<Scatter data={snowPairs} fill={T.snow} fillOpacity={0.45} r={4}/>
+</ScatterChart>
+</ResponsiveContainer>
+</div>}
+</div>
+</Card>
+</div>;
+}
+
+const SimuTooltip = ({active,payload,label}) => {
+  if(!active||!payload?.length)return null;
+  const tot=+payload.reduce((s,p)=>s+(p.value||0),0).toFixed(1);
+  return <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:8,padding:"8px 12px",fontSize:12,color:T.txt}}>
+    <div style={{fontWeight:600,marginBottom:4}}>{label}</div>
+    {payload.map((p,i)=><div key={i} style={{display:"flex",gap:8,alignItems:"center",color:T.txt2}}>
+      <span style={{width:8,height:8,borderRadius:2,background:p.color,flexShrink:0}}/>
+      <span>{p.name}</span>
+      <span style={{fontWeight:600,color:T.txt,marginLeft:"auto"}}>{p.value!=null?p.value+"h":"—"}</span>
+    </div>)}
+    {payload.length>1&&<div style={{display:"flex",gap:8,alignItems:"center",borderTop:`1px solid ${T.border}`,marginTop:4,paddingTop:4}}>
+      <span style={{width:8,height:8,flexShrink:0}}/>
+      <span style={{color:T.txt2}}>Total</span>
+      <span style={{fontWeight:700,color:T.txt,marginLeft:"auto"}}>{tot}h</span>
+    </div>}
+  </div>;
+};
+
+function VueSimu(){
+  const [selM,setSelM]=useState("all");
+  const mLabels=Object.values(SIMU_M_LABELS);
+  const filtered=selM==="all"?SIMU_DATA:(()=>{
+    const mm=Object.keys(SIMU_M_LABELS).find(k=>SIMU_M_LABELS[k]===selM);
+    return SIMU_DATA.filter(r=>r.d.endsWith("/"+mm));
+  })();
+  const totals={
+    b1:+SIMU_DATA.reduce((a,r)=>a+r.b1,0).toFixed(1),
+    b2:+SIMU_DATA.reduce((a,r)=>a+r.b2,0).toFixed(1),
+    b3:+SIMU_DATA.reduce((a,r)=>a+r.b3,0).toFixed(1),
+  };
+  const grandTotal=+(totals.b1+totals.b2+totals.b3).toFixed(1);
+  const topIdx=[totals.b1,totals.b2,totals.b3].indexOf(Math.max(totals.b1,totals.b2,totals.b3));
+  const monthly=mLabels.map(ml=>{
+    const mm=Object.keys(SIMU_M_LABELS).find(k=>SIMU_M_LABELS[k]===ml);
+    const rows=SIMU_DATA.filter(r=>r.d.endsWith("/"+mm));
+    const b1=+rows.reduce((a,r)=>a+r.b1,0).toFixed(1);
+    const b2=+rows.reduce((a,r)=>a+r.b2,0).toFixed(1);
+    const b3=+rows.reduce((a,r)=>a+r.b3,0).toFixed(1);
+    return {m:ml,"Bay 1":b1,"Bay 2":b2,"Bay 3":b3,total:+(b1+b2+b3).toFixed(1)};
+  });
+  const filteredTotal=+filtered.reduce((a,r)=>a+r.b1+r.b2+r.b3,0).toFixed(1);
+  const avgJour=filtered.length?+(filteredTotal/filtered.length).toFixed(1):0;
+  const avgMois=mLabels.length?+(grandTotal/mLabels.length).toFixed(1):0;
+  const avgJourAll=SIMU_DATA.length?+(grandTotal/SIMU_DATA.length).toFixed(1):0;
+  const dayData=filtered.map(r=>({j:r.d,"Bay 1":r.b1,"Bay 2":r.b2,"Bay 3":r.b3}));
+  const C=[T.chartCur,T.accent,T.rain];
+  const bayLabels=["Bay 1","Bay 2","Bay 3"];
+  return <div className="sh-stack">
+    <div className="sh-grid sh-grid-kpi">
+      {[totals.b1,totals.b2,totals.b3].map((h,i)=>{
+        const share=grandTotal>0?Math.round(h/grandTotal*100):0;
+        return <Card key={i} style={{position:"relative"}}>
+          {i===topIdx&&<span className="sh-pill sh-pill-pos" style={{position:"absolute",top:12,right:12}}>Top</span>}
+          <div className="sh-label" style={{marginBottom:6}}>{bayLabels[i]}</div>
+          <div className="sh-value" style={{marginBottom:4}}>{h}<span style={{fontSize:14,color:T.whisper,marginLeft:2}}>h</span></div>
+          <div className="sh-sub" style={{marginBottom:10}}>{share}% du total</div>
+          <div style={{height:4,background:T.card2,borderRadius:2,overflow:"hidden"}}>
+            <div style={{width:`${share}%`,height:"100%",background:C[i],borderRadius:2}}/>
+          </div>
+        </Card>;
+      })}
+      <Card style={{background:T.card2}}>
+        <div className="sh-label" style={{marginBottom:6}}>Σ Total</div>
+        <div className="sh-value-lg" style={{marginBottom:10}}>{grandTotal}<span style={{fontSize:14,color:T.whisper,marginLeft:2}}>h</span></div>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {[["YTD",grandTotal+"h"],["Moy./mois",avgMois+"h"],["Moy./jour",avgJourAll+"h"]].map(([l,v])=>(
+            <div key={l} style={{display:"flex",justifyContent:"space-between",fontSize:11}}>
+              <span style={{color:T.whisper}}>{l}</span>
+              <span style={{fontWeight:600,color:T.txt,fontVariantNumeric:"tabular-nums"}}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+    <Card>
+      <div className="sh-section-head"><div className="sh-h2">Heures par bay · agrégat mensuel</div></div>
+      <ResponsiveContainer width="100%" height={260}>
+        <BarChart data={monthly} barCategoryGap="30%" margin={{top:18,right:4,left:-10,bottom:0}}>
+          <CartesianGrid stroke={T.border} vertical={false}/>
+          <XAxis dataKey="m" tick={{fontSize:11,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+          <YAxis tickFormatter={v=>v+"h"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+          <Tooltip content={<SimuTooltip/>} cursor={{fill:T.card2}}/>
+          <Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8,color:T.txt2}} iconSize={8} iconType="square"/>
+          <Bar dataKey="Bay 1" stackId="s" fill={C[0]}/>
+          <Bar dataKey="Bay 2" stackId="s" fill={C[1]}/>
+          <Bar dataKey="Bay 3" stackId="s" fill={C[2]} radius={[3,3,0,0]}>
+            <LabelList dataKey="total" position="top" style={{fontSize:10,fontWeight:700,fill:T.txt,fontFamily:font}} formatter={v=>v+"h"}/>
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </Card>
+    <Card>
+      <div className="sh-section-head">
+        <div className="sh-h2">Détail journalier</div>
+        <div className="sh-meta-r">
+          Total période <span style={{fontWeight:700,color:T.txt}}>{filteredTotal}h</span>
+          <span style={{marginLeft:8}}>{filtered.length}j · moy. {avgJour}h/j</span>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
+        {["all",...mLabels].map(m=><button key={m} onClick={()=>setSelM(m)} className="sh-tab" data-active={selM===m?"true":"false"}>{m==="all"?"Tout":m}</button>)}
+      </div>
+      <ResponsiveContainer width="100%" height={260}>
+        <BarChart data={dayData} barCategoryGap="12%" margin={{top:4,right:4,left:-10,bottom:0}}>
+          <CartesianGrid stroke={T.border} vertical={false}/>
+          <XAxis dataKey="j" tick={{fontSize:selM==="all"?8:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false} interval={selM==="all"?4:0}/>
+          <YAxis tickFormatter={v=>v+"h"} tick={{fontSize:10,fontFamily:font,fill:T.txt3}} axisLine={false} tickLine={false}/>
+          <Tooltip content={<SimuTooltip/>} cursor={{fill:T.card2}}/>
+          <Legend wrapperStyle={{fontFamily:font,fontSize:11,paddingTop:8,color:T.txt2}} iconSize={8} iconType="square"/>
+          <ReferenceLine y={8} stroke={T.red} strokeDasharray="4 3" strokeWidth={1.5} label={{value:"obj. 8h",position:"right",fontSize:10,fill:T.red,fontFamily:font}}/>
+          <Bar dataKey="Bay 1" stackId="s" fill={C[0]}/>
+          <Bar dataKey="Bay 2" stackId="s" fill={C[1]}/>
+          <Bar dataKey="Bay 3" stackId="s" fill={C[2]} radius={[2,2,0,0]}/>
+        </BarChart>
+      </ResponsiveContainer>
+    </Card>
+  </div>;
+}
+
+// ── MEMBERSHIP ───────────────────────────────────────────────────────────────
+function VueMembership(){
+const [engM,setEngM]=useState(()=>parseInt(localStorage.getItem("sh_members_engm")||"0",10));
+const [engA,setEngA]=useState(()=>parseInt(localStorage.getItem("sh_members_enga")||"0",10));
+const [libre,setLibre]=useState(()=>parseInt(localStorage.getItem("sh_members_libre")||"0",10));
+const setEngMP=v=>{setEngM(v);localStorage.setItem("sh_members_engm",v);};
+const setEngAP=v=>{setEngA(v);localStorage.setItem("sh_members_enga",v);};
+const setLibreP=v=>{setLibre(v);localStorage.setItem("sh_members_libre",v);};
+const today=new Date();
+const moisIdx=today.getMonth();
+const isEte=moisIdx>=5&&moisIdx<=7;
+
+const mrr=Math.round(engM*95+engA*(950/12)+libre*155);
+const arr=engM*95*12+engA*950+libre*155*12;
+const totalM=engM+engA+libre;
+const arpu=totalM>0?Math.round(mrr/totalM):0;
+const hIncluses=isEte?null:totalM*8;
+
+const CA_N_TOT=Object.values(CA_N_STATIC).reduce((a,v)=>a+(v||0),0);
+const moisDone=Object.values(CA_N_STATIC).filter(v=>v!=null).length||1;
+const caMoisMoyen=Math.round(CA_N_TOT/moisDone);
+const pctMrr=caMoisMoyen>0?Math.round(mrr/caMoisMoyen*100):0;
+
+const Row=({label,val,sub,green})=><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"12px 0",borderBottom:`1px solid ${T.border}`,gap:12}}>
+<span style={{fontSize:13,color:T.txt2}}>{label}</span>
+<div style={{textAlign:"right"}}>
+<span style={{fontSize:15,fontWeight:600,color:green?T.green:T.txt,fontVariantNumeric:"tabular-nums"}}>{val}</span>
+{sub&&<div style={{fontSize:10,color:T.whisper,marginTop:2}}>{sub}</div>}
+</div>
+</div>;
+
+const SliderInput=({label,val,set,max=50})=><div style={{marginBottom:18}}>
+<div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+<span style={{fontSize:12,fontWeight:500,color:T.txt2}}>{label}</span>
+<span style={{fontSize:14,fontWeight:700,color:T.txt,fontVariantNumeric:"tabular-nums"}}>{val}</span>
+</div>
+<input type="range" min={0} max={max} value={val} onChange={e=>set(+e.target.value)} style={{width:"100%"}}/>
+</div>;
+
+return <div className="sh-stack">
+
+<div className="sh-grid sh-grid-2col">
+<Card style={{textAlign:"center"}}>
+<div className="sh-label" style={{marginBottom:6}}>MRR</div>
+<div className="sh-value-lg">{fmt(mrr)}</div>
+<div className="sh-sub" style={{marginTop:6}}>revenus récurrents / mois</div>
+</Card>
+<Card style={{textAlign:"center"}}>
+<div className="sh-label" style={{marginBottom:6}}>ARR</div>
+<div className="sh-value-lg">{fmt(arr)}</div>
+<div className="sh-sub" style={{marginTop:6}}>revenus annuels garantis</div>
+</Card>
+</div>
+
+<div className="sh-grid sh-grid-3">
+<Card style={{textAlign:"center"}}>
+<div className="sh-label" style={{marginBottom:6}}>Membres actifs</div>
+<div className="sh-value">{totalM}</div>
+<div className="sh-sub" style={{marginTop:6}}>{engM} mensuel · {engA} annuel · {libre} libre</div>
+</Card>
+<Card style={{textAlign:"center"}}>
+<div className="sh-label" style={{marginBottom:6}}>ARPU</div>
+<div className="sh-value">{fmt(arpu)}</div>
+<div className="sh-sub" style={{marginTop:6}}>par membre / mois</div>
+</Card>
+<Card style={{textAlign:"center"}}>
+<div className="sh-label" style={{marginBottom:6}}>MRR / CA mensuel</div>
+<div className="sh-value" style={{color:pctMrr>30?T.green:pctMrr>15?T.txt:T.red}}>{pctMrr}%</div>
+<div className="sh-sub" style={{marginTop:6}}>revenu garanti sur ~{fmt(caMoisMoyen)}</div>
+</Card>
+</div>
+
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Simulateur membres</div></div>
+<div style={{marginTop:12}}>
+<SliderInput label="PLAYER mensuel 12 mois · 95€/mois (1 140€/an)" val={engM} set={setEngMP}/>
+<SliderInput label="PLAYER annuel one-shot · 950€/an (79€/mois amorti)" val={engA} set={setEngAP}/>
+<SliderInput label="PLAYER sans engagement · 155€/mois" val={libre} set={setLibreP}/>
+</div>
+<div style={{marginTop:4}}>
+<Row label="MRR total" val={fmt(mrr)}/>
+<Row label="ARR total annuel" val={fmt(arr)} sub={`${engM} × 1 140€ + ${engA} × 950€ + ${libre} × 1 860€`}/>
+<Row label="Heures incluses/mois" val={isEte?"∞ été (juin–août)":totalM*8+"h"} sub={isEte?"illimité pour tous les membres":"membres × 8h"}/>
+<Row label="Valeur heures au tarif plein" val={isEte?"—":fmt((hIncluses||0)*50)} sub="estimation ~50€/h moyen"/>
+</div>
+</Card>
+
+{isEte&&<div className="sh-alert" data-tone="pos">
+<div style={{flex:1}}>
+<div style={{fontSize:13,fontWeight:600,color:T.green,marginBottom:4}}>☀ Mode été · accès illimité juin–août</div>
+<div style={{fontSize:12,color:T.txt2,lineHeight:1.5}}>Les membres utilisent les simulateurs sans limite. Le MRR de <strong style={{color:T.txt}}>{fmt(mrr)}</strong> est garanti indépendamment de l'utilisation.</div>
+</div>
+</div>}
+
+<Card>
+<div className="sh-section-head"><div className="sh-h2">Formules en vigueur</div></div>
+<div>
+<Row label="PLAYER · Engagement 12 mois" val="95€/mois" sub="ou 950€/an · 2 mois offerts"/>
+<Row label="PLAYER · Sans engagement" val="155€/mois"/>
+<Row label="Inclus" val="8h/mois · été illimité" sub="+ 15% heures supp · 10% leçons · invités 5€/pers"/>
+<Row label="Bay sans abonnement" val="45€/h avant 18h · 65€/h après"/>
+</div>
+</Card>
+
+</div>;
+}
+
+// ── ICONS ─────────────────────────────────────────────────────────────────────
+const IconRefresh = () => (
+  <svg className="sh-icon sh-icon-refresh" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9"/><path d="M13.5 2v3.5h-3.5"/>
+  </svg>
+);
+const IconEye = () => (
+  <svg className="sh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1.5 8s2.5-5 6.5-5 6.5 5 6.5 5-2.5 5-6.5 5-6.5-5-6.5-5z"/><circle cx="8" cy="8" r="2"/>
+  </svg>
+);
+const IconEyeOff = () => (
+  <svg className="sh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 2l12 12"/><path d="M6.5 6.5a2 2 0 0 0 2.8 2.8"/><path d="M14.5 8s-2.5 5-6.5 5a6 6 0 0 1-3.2-.9"/><path d="M4.3 4.3C2.5 5.5 1.5 8 1.5 8s.7 1.4 2 2.7"/>
+  </svg>
+);
+const IconSun = () => (
+  <svg className="sh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M3.5 12.5l1.4-1.4M11.1 4.9l1.4-1.4"/>
+  </svg>
+);
+const IconMoon = () => (
+  <svg className="sh-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13.5 9.5A5.5 5.5 0 0 1 6.5 2.5a5.5 5.5 0 1 0 7 7z"/>
+  </svg>
+);
+
+// ── APP ───────────────────────────────────────────────────────────────────────
+function App(){
+const [vue,setVue]=useState("jour");
+const [ca_n,setCaN]=useState(CA_N_STATIC);
+const [ca_n1,setCaN1]=useState(CA_N1_STATIC);
+const [growth,setGrowth]=useState(40);
+const [blurred,setBlurred]=useState(false);
+const [wxToday,setWxToday]=useState(null);
+const [wxForecast,setWxForecast]=useState([]);
+const [wxHist,setWxHist]=useState(null);
+const [wxDaily,setWxDaily]=useState({});
+const [lastSync,setLastSync]=useState(null);
+const [syncing,setSyncing]=useState(false);
+const [syncStatus,setSyncStatus]=useState("");
+const [theme,setTheme]=useState(()=>localStorage.getItem("sh_theme")||"auto"); // auto|dark|light
+const [,forceRender]=useState(0);
+
+// ─── thème : applique data-theme et écoute le système ─────────────────────
+useEffect(()=>{
+  const root=document.documentElement;
+  if(theme==="auto") root.removeAttribute("data-theme");
+  else root.setAttribute("data-theme",theme);
+  localStorage.setItem("sh_theme",theme);
+  // re-sync palette + force re-render des charts
+  requestAnimationFrame(()=>{ syncT(); forceRender(n=>n+1); });
+},[theme]);
+useEffect(()=>{
+  const mq=window.matchMedia("(prefers-color-scheme: dark)");
+  const handler=()=>{ syncT(); forceRender(n=>n+1); };
+  mq.addEventListener("change",handler);
+  return ()=>mq.removeEventListener("change",handler);
+},[]);
+
+const syncSheets=useCallback(async()=>{
+setSyncing(true); setSyncStatus("sync…");
+try{
+const res=await fetch(APPS_SCRIPT_URL, {redirect:"follow"});
+if(!res.ok) throw new Error(`HTTP ${res.status}`);
+const text=await res.text();
+const json=JSON.parse(text.trim().replace(/^﻿/,""));
+const n={...CA_N_STATIC}, n1={...CA_N1_STATIC};
+
+const apply=(rows, target)=>{ const found=parseSheetRows(rows); Object.assign(target,found); };
+
+if(Array.isArray(json)){
+apply(json, n);
+} else if(typeof json==="object"){
+Object.entries(json).forEach(([key,rows])=>{
+if(!Array.isArray(rows)) return;
+if(key.includes("26")) apply(rows, n);
+});
+}
+
+MONTHS.forEach(m=>{ if(n1[m]==null) n1[m]=CA_N1_STATIC[m]; });
+
+if(typeof json==="object"&&!Array.isArray(json)&&Array.isArray(json["CAISSE 26"])){
+  const dj=parseDailyCa(json["CAISSE 26"]);
+  Object.keys(dj).forEach(function(mm){DJ_N[mm]=dj[mm];});
+}
+if(typeof json==="object"&&!Array.isArray(json)&&Array.isArray(json["STATS SIMU"])){
+  const sd=parseSimuRows(json["STATS SIMU"]);
+  if(sd.length>0){SIMU_DATA=sd;}
+}
+setCaN(n); setCaN1(n1); setLastSync(new Date()); setSyncStatus("ok");
+console.log("✅ Sync OK");
+}catch(e){
+setSyncStatus("erreur");
+console.warn("❌ Sync échouée:", e.message);
+}
+setSyncing(false);
+},[]);
+
+useEffect(()=>{ syncSheets(); const t=setInterval(syncSheets,120000); return()=>clearInterval(t); },[]);
+
+useEffect(()=>{
+fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=weathercode,temperature_2m_max,precipitation_sum,snowfall_sum,windspeed_10m_max&timezone=Europe%2FParis&forecast_days=5`)
+.then(r=>r.json()).then(d=>{const D=d.daily,L=["Auj","Dem","J+2","J+3","J+4"];setWxToday({code:D.weathercode[0],tmax:D.temperature_2m_max[0],rain:D.precipitation_sum[0],snow:D.snowfall_sum[0]||0,wind:Math.round(D.windspeed_10m_max[0])});setWxForecast(D.time.map((_,i)=>({label:L[i],code:D.weathercode[i],tmax:D.temperature_2m_max[i],rain:D.precipitation_sum[i],snow:D.snowfall_sum[i]||0})));}).catch(()=>{});
+const t=new Date(); t.setFullYear(t.getFullYear()-1);
+fetch(`https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LON}&start_date=${t.toISOString().slice(0,10)}&end_date=${t.toISOString().slice(0,10)}&daily=weathercode,temperature_2m_max,precipitation_sum,snowfall_sum,windspeed_10m_max&timezone=Europe%2FParis`)
+.then(r=>r.json()).then(d=>{const D=d.daily;setWxHist({code:D.weathercode[0],tmax:D.temperature_2m_max[0],rain:D.precipitation_sum[0],snow:D.snowfall_sum[0]||0,wind:Math.round(D.windspeed_10m_max[0])});}).catch(()=>{});
+},[]);
+
+useEffect(()=>{
+const months=[
+{key:"01",arch:false,s:"2026-01-01",e:"2026-01-31"},{key:"02",arch:false,s:"2026-02-01",e:"2026-02-28"},
+{key:"03",arch:false,s:"2026-03-01",e:"2026-03-31"},{key:"04",arch:false,s:"2026-04-01",e:"2026-04-30"},
+{key:"05",arch:false,s:"2026-05-01",e:"2026-05-31"},{key:"06",arch:false,s:"2026-06-01",e:"2026-06-30"},
+{key:"n1-02",arch:true,s:"2025-02-15",e:"2025-02-28"},{key:"n1-03",arch:true,s:"2025-03-01",e:"2025-03-31"},
+{key:"n1-04",arch:true,s:"2025-04-01",e:"2025-04-30"},{key:"n1-05",arch:true,s:"2025-05-01",e:"2025-05-31"},
+{key:"n1-06",arch:true,s:"2025-06-01",e:"2025-06-30"},{key:"n1-07",arch:true,s:"2025-07-01",e:"2025-07-31"},
+{key:"n1-08",arch:true,s:"2025-08-01",e:"2025-08-31"},{key:"n1-09",arch:true,s:"2025-09-01",e:"2025-09-30"},
+{key:"n1-10",arch:true,s:"2025-10-01",e:"2025-10-31"},{key:"n1-11",arch:true,s:"2025-11-01",e:"2025-11-30"},
+{key:"n1-12",arch:true,s:"2025-12-01",e:"2025-12-31"},
+];
+months.forEach(({key,arch,s,e})=>{
+const base=arch?"https://archive-api.open-meteo.com/v1/archive":"https://api.open-meteo.com/v1/forecast";
+fetch(`${base}?latitude=${LAT}&longitude=${LON}&start_date=${s}&end_date=${e}&daily=weathercode,temperature_2m_max,precipitation_sum,snowfall_sum&timezone=Europe%2FParis`)
+.then(r=>r.json()).then(d=>{const D=d.daily,pad=key==="n1-02"?14:0;const days=Array(pad).fill(null).concat(D.time.map((_,i)=>({code:D.weathercode[i],tmax:D.temperature_2m_max[i],rain:D.precipitation_sum[i],snow:D.snowfall_sum[i]||0})));setWxDaily(p=>({...p,[key]:days}));}).catch(()=>{});
+});
+},[]);
+
+const today=new Date();
+const dateStr=today.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^\w/,c=>c.toUpperCase());
+const navItems=[{k:"jour",l:"Aujourd'hui"},{k:"mois",l:"Mensuel"},{k:"annee",l:"Annuel"},{k:"jours",l:"Journalier"},{k:"meteo",l:"Météo"},{k:"simu",l:"Simulateurs"},{k:"membership",l:"Membership"}];
+
+const nextTheme = theme==="auto" ? "dark" : theme==="dark" ? "light" : "auto";
+const themeIcon = theme==="light" ? <IconSun/> : theme==="dark" ? <IconMoon/> : <IconSun/>;
+const themeLabel = theme==="auto" ? "Auto" : theme==="dark" ? "Dark" : "Light";
+
+return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}}>
+
+<header className="sh-topbar">
+<div className="sh-brand">
+<div className="sh-brand-mark">
+<span className="sh-dot" aria-hidden="true"/>
+<div>
+<div className="sh-brand-text">Swing House</div>
+<div className="sh-brand-sub">Pilotage · Chamonix</div>
+</div>
+</div>
+<div className="sh-sep" style={{width:1,height:24,background:"var(--hairline)",margin:"0 6px"}}/>
+<span className="sh-date" style={{fontSize:12,color:"var(--ink-muted)"}}>{dateStr}</span>
+</div>
+<div className="sh-meta">
+<div style={{display:"flex",alignItems:"center",gap:8}}>
+<span style={{fontSize:11,color:"var(--ink-muted)"}}>Objectif</span>
+<span className="sh-num" style={{fontSize:12,fontWeight:600,color:growth>=0?"var(--primary)":"var(--danger)",minWidth:64}}>N-1 {growth>=0?"+":""}{growth}%</span>
+<input type="range" min={-20} max={80} step={5} value={growth} onChange={e=>setGrowth(+e.target.value)} style={{width:90}} aria-label="Objectif de croissance"/>
+</div>
+<button onClick={()=>setBlurred(b=>!b)} className="sh-btn" data-active={blurred?"true":"false"} title={blurred?"Afficher":"Masquer"} aria-label={blurred?"Afficher les données":"Masquer les données"}>
+{blurred?<IconEyeOff/>:<IconEye/>}<span>{blurred?"Masqué":"Privé"}</span>
+</button>
+<button onClick={()=>setTheme(nextTheme)} className="sh-btn" title={`Thème : ${themeLabel}`} aria-label="Changer de thème">
+{themeIcon}<span>{themeLabel}</span>
+</button>
+<button onClick={syncSheets} disabled={syncing} className="sh-btn" data-state={syncStatus==="erreur"?"error":undefined} aria-label="Rafraîchir les données">
+<IconRefresh/>
+<span className="sh-num">{syncing?"sync…":syncStatus==="erreur"?"Erreur":lastSync?lastSync.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"Sync"}</span>
+</button>
+</div>
+</header>
+
+<nav className="sh-nav" role="tablist" aria-label="Sections du dashboard">
+{navItems.map(n=><NavBtn key={n.k} l={n.l} a={vue===n.k} onClick={()=>setVue(n.k)}/>)}
+</nav>
+
+<main className="sh-main" style={{filter:blurred?"blur(8px)":"none",transition:"filter 0.3s ease",userSelect:blurred?"none":"auto"}}>
+{vue==="jour" && <VueJour wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} ca_n={ca_n} ca_n1={ca_n1} growth={growth} wxDaily={wxDaily}/>}
+{vue==="mois" && <VueMois ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
+{vue==="annee" && <VueAnnee ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
+{vue==="jours" && <VueJours wxDaily={wxDaily}/>}
+{vue==="meteo" && <VueMeteo wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} wxDaily={wxDaily}/>}
+{vue==="simu" && <VueSimu/>}
+{vue==="membership" && <VueMembership/>}
+</main>
+
+<footer className="sh-footer">
+<span>Swing House Chamonix · Pilotage</span>
+<span className="mono">v2.0</span>
+</footer>
+
+</div>;
+}
+
+ReactDOM.render(<App/>, document.getElementById('root'));
+</script>
+</body>
+</html>
