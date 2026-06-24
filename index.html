@@ -1635,6 +1635,33 @@ if(typeof json==="object"&&!Array.isArray(json)&&Array.isArray(json["STATS SIMU"
   const sd=parseSimuRows(json["STATS SIMU"]);
   if(sd.length>0){SIMU_DATA=sd;}
 }
+
+// Merge Alba snapshot (mois récents non couverts par STATS SIMU)
+try {
+  const snapRes = await fetch("data/alba-snapshot.json", {cache:"no-store"});
+  if (snapRes.ok) {
+    const snap = await snapRes.json();
+    const albaRows = snap?.simBayDaily?.rows;
+    if (Array.isArray(albaRows) && albaRows.length > 0) {
+      const albaDates = new Set(albaRows.map(r => r.d));
+      // Apps Script wins là où il a des données, sinon on prend Alba (mois récents)
+      const appsScriptDates = new Set(SIMU_DATA.map(r => r.d));
+      const merged = [
+        ...SIMU_DATA,
+        ...albaRows.filter(r => !appsScriptDates.has(r.d))
+      ];
+      SIMU_DATA = merged;
+      // Reconstruit SIMU_M_LABELS avec les mois merged
+      const MONTH_LABELS = {"01":"Jan","02":"Fév","03":"Mar","04":"Avr","05":"Mai","06":"Jun","07":"Jul","08":"Aoû","09":"Sep","10":"Oct","11":"Nov","12":"Déc"};
+      const months = [...new Set(SIMU_DATA.map(r => r.d.split("/")[1]))].sort();
+      Object.keys(SIMU_M_LABELS).forEach(k => delete SIMU_M_LABELS[k]);
+      months.forEach(mm => { if (MONTH_LABELS[mm]) SIMU_M_LABELS[mm] = MONTH_LABELS[mm]; });
+    }
+  }
+} catch (e) {
+  console.warn("Alba snapshot indisponible:", e.message);
+}
+
 setCaN(n); setCaN1(n1); setLastSync(new Date()); setSyncStatus("ok");
 console.log("✅ Sync OK");
 }catch(e){

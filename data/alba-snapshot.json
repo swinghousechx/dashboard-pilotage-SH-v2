@@ -163,6 +163,24 @@
       ]
     }
   ],
+  "simBayDaily": {
+    "_note": "Heures par bay par jour, calculées depuis Alba get_calendar (resourceType=SIM). Format compatible avec SIMU_DATA du dashboard. Bay 1 absent des bookings juin — soit pas utilisé, soit nom différent dans Alba ('Bay 2 - Rh' et 'Bay 3 - Lh/Rh' sont les 2 sims actifs en juin).",
+    "coverageStart": "2026-06-01",
+    "coverageEnd": "2026-06-24",
+    "rows": [
+      { "d": "02/06", "b1": 0, "b2": 2.5, "b3": 0   },
+      { "d": "03/06", "b1": 0, "b2": 1,   "b3": 0   },
+      { "d": "05/06", "b1": 0, "b2": 0,   "b3": 1   },
+      { "d": "06/06", "b1": 0, "b2": 0,   "b3": 3   },
+      { "d": "07/06", "b1": 0, "b2": 1.5, "b3": 1   },
+      { "d": "09/06", "b1": 0, "b2": 0,   "b3": 2.5 },
+      { "d": "17/06", "b1": 0, "b2": 0,   "b3": 2   },
+      { "d": "18/06", "b1": 0, "b2": 1,   "b3": 0   },
+      { "d": "20/06", "b1": 0, "b2": 1.5, "b3": 3   },
+      { "d": "21/06", "b1": 0, "b2": 0,   "b3": 1   },
+      { "d": "23/06", "b1": 0, "b2": 0,   "b3": 1   }
+    ]
+  },
   "topCustomers": {
     "byRevenue": [
       { "userId": "65b7f015-26a1-4bd6-9ecd-47f18fe0a27c", "name": "Gary Black",                 "bookingsCount": 8,  "totalRevenue": 630,   "totalHours": 14.5, "isMember": false },
