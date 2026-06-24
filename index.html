@@ -1268,11 +1268,13 @@ const SimuTooltip = ({active,payload,label}) => {
   </div>;
 };
 
-function VueSimu({period}){
+function VueSimu({period,lastSync}){
   const today=useMemo(()=>new Date(),[]);
   // Le sélecteur de période globale pilote le scope ; la sélection locale (selM)
   // reste un drill-down secondaire DANS cette période (toujours utile pour zoomer sur un mois précis quand la période est large).
-  const scoped=useMemo(()=>filterSimuByPeriod(SIMU_DATA,period,today),[period,today]);
+  // lastSync dans les deps : SIMU_DATA est une variable module-level réassignée par syncSheets ;
+  // sans cette dep, useMemo retournerait la valeur cachée même après mutation de SIMU_DATA.
+  const scoped=useMemo(()=>filterSimuByPeriod(SIMU_DATA,period,today),[period,today,lastSync]);
   const [selM,setSelM]=useState("all");
   // Si la période globale change, on remet le drill-down sur "all" pour éviter la confusion
   useEffect(()=>{setSelM("all");},[period]);
@@ -1770,7 +1772,7 @@ return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}
 {vue==="annee" && <VueAnnee ca_n={ca_n} ca_n1={ca_n1} growth={growth}/>}
 {vue==="jours" && <VueJours wxDaily={wxDaily}/>}
 {vue==="meteo" && <VueMeteo wxToday={wxToday} wxForecast={wxForecast} wxHist={wxHist} wxDaily={wxDaily} period={period}/>}
-{vue==="simu" && <VueSimu period={period}/>}
+{vue==="simu" && <VueSimu period={period} lastSync={lastSync}/>}
 {vue==="membership" && <VueMembership/>}
 </main>
 
