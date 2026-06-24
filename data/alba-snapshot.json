@@ -1,0 +1,192 @@
+{
+  "_meta": {
+    "source": "Albaplay MCP",
+    "locationId": "491dabdf-5fd4-46c0-badf-348aa3537155",
+    "locationName": "SWING HOUSE Chamonix",
+    "timezone": "Europe/Paris",
+    "snapshotAt": "2026-06-24T14:35:02+02:00",
+    "coverageStart": "2026-01-01",
+    "coverageEnd": "2026-06-24",
+    "yearScope": "2026 only — Alba a démarré sur Swing House en 2026, aucune donnée historique 2025",
+    "notes": [
+      "bookingValue = valeur facturée des sessions qui se déroulent dans la période (par date de play). Ne pas confondre avec transactionRevenue.",
+      "transactionRevenue = cash effectivement encaissé dans la période (par date de paiement). Un abonnement annuel payé en janvier mais consommé sur 12 mois compte 100% dans transactionRevenue de janvier mais s'étale dans bookingValue.",
+      "totalRevenue dans topCustomers ne compte que les paiements rattachés à des bookings ; il exclut les achats standalone de membership/event/voucher.",
+      "Doublon client connu : 'Stephane Carde' (cap) et 'stephane carde' (min) ont 2 userIds distincts — qualité données à corriger côté Alba.",
+      "newCustomers vs returningCustomers : 106 vs 1 sur YTD 2026 = effet de la baseline qui démarre à 2026. À reprendre quand la base aura 12+ mois d'historique."
+    ]
+  },
+  "ytd": {
+    "from": "2026-01-01",
+    "to": "2026-06-24",
+    "bookingsCount": 506,
+    "uniqueCustomers": 106,
+    "hoursBooked": 648,
+    "dropinBookings": 221,
+    "memberOrPreorderBookings": 285,
+    "occupancyPercent": 7.1,
+    "bookingValue": 26919.05,
+    "averageBookingValue": 53.2,
+    "transactionRevenue": 12406.79,
+    "revenueByCategory": [
+      { "category": "SIM_BOOKING",       "label": "Bookings",    "amount": 8276.79, "count": 132, "percentage": 66.7 },
+      { "category": "SUBSCRIPTION",      "label": "Memberships", "amount": 3545,    "count": 32,  "percentage": 28.6 },
+      { "category": "GIFT_CERTIFICATE",  "label": "Gift cards",  "amount": 545,     "count": 9,   "percentage": 4.4  },
+      { "category": "EVENT_PARTICIPATION","label": "Events",     "amount": 40,      "count": 2,   "percentage": 0.3  }
+    ],
+    "customerInsights": {
+      "totalCustomers": 107,
+      "newCustomers": 106,
+      "returningCustomers": 1,
+      "averageBookingsPerCustomer": 4.7,
+      "busiestWeekday": "Tuesday",
+      "mostActiveCustomer": { "name": "jonathan martin", "bookingsCount": 29 }
+    }
+  },
+  "monthly2026": [
+    {
+      "month": "01",
+      "label": "Jan 26",
+      "from": "2026-01-01",
+      "to": "2026-01-31",
+      "bookingsCount": 34,
+      "uniqueCustomers": 9,
+      "hoursBooked": 40.5,
+      "dropinBookings": 18,
+      "memberOrPreorderBookings": 16,
+      "occupancyPercent": 2.5,
+      "bookingValue": 1660,
+      "averageBookingValue": 48.82,
+      "transactionRevenue": 992.5,
+      "revenueByCategory": [
+        { "category": "SIM_BOOKING",        "amount": 492.5, "count": 6, "percentage": 49.6 },
+        { "category": "SUBSCRIPTION",       "amount": 360,   "count": 3, "percentage": 36.3 },
+        { "category": "GIFT_CERTIFICATE",   "amount": 100,   "count": 1, "percentage": 10.1 },
+        { "category": "EVENT_PARTICIPATION","amount": 40,    "count": 2, "percentage": 4    }
+      ]
+    },
+    {
+      "month": "02",
+      "label": "Fév 26",
+      "from": "2026-02-01",
+      "to": "2026-02-28",
+      "bookingsCount": 189,
+      "uniqueCustomers": 54,
+      "hoursBooked": 245.5,
+      "dropinBookings": 86,
+      "memberOrPreorderBookings": 103,
+      "occupancyPercent": 16.9,
+      "bookingValue": 10183.7,
+      "averageBookingValue": 53.88,
+      "transactionRevenue": 4646.2,
+      "revenueByCategory": [
+        { "category": "SIM_BOOKING",       "amount": 3586.2, "count": 59, "percentage": 77.2 },
+        { "category": "SUBSCRIPTION",      "amount": 860,    "count": 6,  "percentage": 18.5 },
+        { "category": "GIFT_CERTIFICATE",  "amount": 200,    "count": 5,  "percentage": 4.3  }
+      ]
+    },
+    {
+      "month": "03",
+      "label": "Mar 26",
+      "from": "2026-03-01",
+      "to": "2026-03-31",
+      "bookingsCount": 179,
+      "uniqueCustomers": 49,
+      "hoursBooked": 228.5,
+      "dropinBookings": 70,
+      "memberOrPreorderBookings": 109,
+      "occupancyPercent": 14.6,
+      "bookingValue": 8933.85,
+      "averageBookingValue": 49.91,
+      "transactionRevenue": 4689.09,
+      "revenueByCategory": [
+        { "category": "SIM_BOOKING",       "amount": 2994.09, "count": 51, "percentage": 63.9 },
+        { "category": "SUBSCRIPTION",      "amount": 1630,    "count": 15, "percentage": 34.8 },
+        { "category": "GIFT_CERTIFICATE",  "amount": 65,      "count": 1,  "percentage": 1.4  }
+      ]
+    },
+    {
+      "month": "04",
+      "label": "Avr 26",
+      "from": "2026-04-01",
+      "to": "2026-04-30",
+      "bookingsCount": 81,
+      "uniqueCustomers": 26,
+      "hoursBooked": 107.5,
+      "dropinBookings": 34,
+      "memberOrPreorderBookings": 47,
+      "occupancyPercent": 6.8,
+      "bookingValue": 5416.5,
+      "averageBookingValue": 66.87,
+      "transactionRevenue": 1759,
+      "revenueByCategory": [
+        { "category": "SIM_BOOKING",  "amount": 1159, "count": 15, "percentage": 65.9 },
+        { "category": "SUBSCRIPTION", "amount": 600,  "count": 7,  "percentage": 34.1 }
+      ]
+    },
+    {
+      "month": "05",
+      "label": "Mai 26",
+      "from": "2026-05-01",
+      "to": "2026-05-31",
+      "bookingsCount": 3,
+      "uniqueCustomers": 0,
+      "hoursBooked": 4,
+      "dropinBookings": 3,
+      "memberOrPreorderBookings": 0,
+      "occupancyPercent": 0.2,
+      "bookingValue": 135,
+      "averageBookingValue": 45,
+      "transactionRevenue": 95,
+      "revenueByCategory": [
+        { "category": "SUBSCRIPTION", "amount": 95, "count": 1, "percentage": 100 }
+      ]
+    },
+    {
+      "month": "06",
+      "label": "Jun 26",
+      "from": "2026-06-01",
+      "to": "2026-06-24",
+      "partial": true,
+      "bookingsCount": 20,
+      "uniqueCustomers": 5,
+      "hoursBooked": 22,
+      "dropinBookings": 10,
+      "memberOrPreorderBookings": 10,
+      "occupancyPercent": 1.8,
+      "bookingValue": 590,
+      "averageBookingValue": 29.5,
+      "transactionRevenue": 225,
+      "revenueByCategory": [
+        { "category": "GIFT_CERTIFICATE", "amount": 180, "count": 2, "percentage": 80 },
+        { "category": "SIM_BOOKING",      "amount": 45,  "count": 1, "percentage": 20 }
+      ]
+    }
+  ],
+  "topCustomers": {
+    "byRevenue": [
+      { "userId": "65b7f015-26a1-4bd6-9ecd-47f18fe0a27c", "name": "Gary Black",                 "bookingsCount": 8,  "totalRevenue": 630,   "totalHours": 14.5, "isMember": false },
+      { "userId": "0db8c8ad-51c9-4566-9c48-4e33f7a236aa", "name": "Felix Schjøth-Iversen Nordhus","bookingsCount": 1,  "totalRevenue": 480,   "totalHours": 4,    "isMember": false },
+      { "userId": "dbdf2932-de4b-43f5-a4bb-dbc033d87f27", "name": "stephane carde",             "bookingsCount": 4,  "totalRevenue": 360,   "totalHours": 7,    "isMember": false },
+      { "userId": "05ddb6af-6ccd-4685-b9e4-7906681d60e9", "name": "Valerie ROUHIER",            "bookingsCount": 3,  "totalRevenue": 315,   "totalHours": 7,    "isMember": false },
+      { "userId": "e89d4eaa-5c9e-4364-9e68-d2403c3ed0fd", "name": "Craig Widdicombe",           "bookingsCount": 21, "totalRevenue": 286.8, "totalHours": 30,   "isMember": false },
+      { "userId": "7908c7d0-d916-45db-89b7-01b8eede7540", "name": "Bart Bremer",                "bookingsCount": 1,  "totalRevenue": 270,   "totalHours": 3,    "isMember": false },
+      { "userId": "4e9b07cb-51d8-4297-aadd-ffe756302147", "name": "Andrew Jenkinson",           "bookingsCount": 4,  "totalRevenue": 245,   "totalHours": 5,    "isMember": false },
+      { "userId": "c8051c49-7abc-45e5-807a-a1d6df9af462", "name": "Colin Church",               "bookingsCount": 8,  "totalRevenue": 225,   "totalHours": 6.5,  "isMember": false },
+      { "userId": "30f2a706-5d23-4609-b225-032d837f8846", "name": "Paul  Actis Dato",           "bookingsCount": 3,  "totalRevenue": 200,   "totalHours": 6,    "isMember": false },
+      { "userId": "7a25b611-bb50-4b49-bb35-ab245c420b8f", "name": "Carolina Borén",             "bookingsCount": 1,  "totalRevenue": 180,   "totalHours": 2,    "isMember": false }
+    ],
+    "byBookings": [
+      { "userId": "89b0f683-5269-49f4-b815-6530fd487f0f", "name": "jonathan martin",            "bookingsCount": 29, "totalRevenue": 93.5,  "totalHours": 34,   "isMember": true  },
+      { "userId": "e89d4eaa-5c9e-4364-9e68-d2403c3ed0fd", "name": "Craig Widdicombe",           "bookingsCount": 21, "totalRevenue": 286.8, "totalHours": 30,   "isMember": false },
+      { "userId": "1aad1354-3da7-410a-9078-c363c575e58a", "name": "Simon Pommarede lalanne",    "bookingsCount": 15, "totalRevenue": 0,     "totalHours": 16,   "isMember": false },
+      { "userId": "8574be39-03d0-4f0e-b8fd-4a84de650a67", "name": "Pierre Michaud",             "bookingsCount": 10, "totalRevenue": 22.5,  "totalHours": 16,   "isMember": false },
+      { "userId": "6cbf29f9-bea2-42bd-848f-3782ba872777", "name": "Fefe Sammarchi",             "bookingsCount": 9,  "totalRevenue": 0,     "totalHours": 11,   "isMember": false },
+      { "userId": "971257a0-c938-4bf9-8a39-a8112fb670a3", "name": "Dominic Jackman",            "bookingsCount": 9,  "totalRevenue": 0,     "totalHours": 11,   "isMember": false },
+      { "userId": "11067d66-0658-427e-837e-eb63f9e52b8a", "name": "Steve Walton",               "bookingsCount": 8,  "totalRevenue": 0,     "totalHours": 11,   "isMember": false },
+      { "userId": "65b7f015-26a1-4bd6-9ecd-47f18fe0a27c", "name": "Gary Black",                 "bookingsCount": 8,  "totalRevenue": 630,   "totalHours": 14.5, "isMember": false },
+      { "userId": "c8051c49-7abc-45e5-807a-a1d6df9af462", "name": "Colin Church",               "bookingsCount": 8,  "totalRevenue": 225,   "totalHours": 6.5,  "isMember": false },
+      { "userId": "f5bc7c96-8e50-4999-a00d-abf9d4a8abf5", "name": "Michael Arnold",             "bookingsCount": 7,  "totalRevenue": 90,    "totalHours": 10.5, "isMember": false }
+    ]
+  }
+}
