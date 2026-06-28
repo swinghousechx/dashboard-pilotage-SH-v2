@@ -310,6 +310,16 @@ input[type=range]::-moz-range-thumb{
   padding:0.85rem 1rem;border-radius:var(--radius);
   border:1px solid var(--hairline);background:var(--surface);
 }
+.sh-hier{
+  display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;
+  padding:0.55rem 0.9rem;border-radius:var(--radius);
+  border:1px solid var(--hairline);background:var(--surface);
+  font-size:0.82rem;
+}
+.sh-hier-lbl{color:var(--ink-muted);font-weight:500;}
+.sh-hier-val{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;}
+.sh-hier-sep{color:var(--ink-whisper);}
+.sh-hier-obj{color:var(--ink-2);font-variant-numeric:tabular-nums;}
 .sh-alert[data-tone="pos"]{border-color:color-mix(in oklch,var(--primary) 40%, transparent);background:var(--primary-tint);}
 .sh-alert[data-tone="neu"]{border-color:color-mix(in oklch,var(--accent) 40%, transparent);background:var(--accent-tint);}
 .sh-alert[data-tone="neg"]{border-color:color-mix(in oklch,var(--danger) 40%, transparent);background:var(--danger-tint);}
@@ -839,6 +849,17 @@ let periodN, periodN1, periodLbl=PERIOD_LABELS[period]||"YTD";
 if(period==="month"){ periodN=caMN; periodN1=caN1MemeStade; }
 else if(period==="ytd"){ periodN=totalN; periodN1=totalN1S; }
 else { const n=period==="7d"?7:30; periodN=sumLastNDays(DJ_N,today,n); periodN1=sumLastNDays(DJ_N1,today,n); }
+
+// ─── Bilan de la veille ─────────────────────────────────────────────────────
+const yest=new Date(today); yest.setDate(yest.getDate()-1);
+const ymm=String(yest.getMonth()+1).padStart(2,"0");
+const ydd=yest.getDate()-1;
+const caHier=DJ_N[ymm]?.[ydd]??null;
+const caHierN1=DJ_N1[ymm]?.[ydd]??null;
+const objHier=caHierN1!=null&&caHierN1>0?Math.round(caHierN1*(1+growth/100)):null;
+const atteint=caHier!=null&&objHier!=null&&caHier>=objHier;
+const deltaObj=caHier!=null&&objHier!=null&&objHier>0?Math.round((caHier-objHier)/objHier*100):null;
+const yestLbl=yest.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"}).replace(/^\w/,c=>c.toUpperCase());
 const pairs=useMemo(()=>{
 const p=[];
 Object.entries(DJ_N1).forEach(([mm,arr])=>{const wx=wxDaily[`n1-${mm}`]||[];(arr||[]).forEach((ca,i)=>{if(wx[i]&&ca>0)p.push({x:+(wx[i].rain||0).toFixed(1),y:ca});});});
@@ -849,6 +870,16 @@ const rainAuj=wxToday?.rain??null,rainDem=wxForecast?.[1]?.rain??null;
 const probaAuj=rainAuj!=null?probaObj(rainAuj,objJour,pairs):null;
 const probaDem=rainDem!=null?probaObj(rainDem,objJour,pairs):null;
 return <div className="sh-stack">
+{caHier!=null && <div className="sh-hier">
+<span className="sh-hier-lbl">Hier · {yestLbl}</span>
+<span className="sh-hier-val" data-private="true">{fmt(caHier)}</span>
+{objHier!=null && <>
+<span className="sh-hier-sep">·</span>
+<span className="sh-hier-obj">obj <span data-private="true">{fmt(objHier)}</span></span>
+<span className={"sh-pill "+(atteint?"sh-pill-pos":"sh-pill-neg")} style={{marginLeft:"auto"}}>{atteint?"✓ atteint":"✗ raté"} <span data-private="true">{deltaObj!=null?(deltaObj>=0?"+":"")+deltaObj+"%":""}</span></span>
+</>}
+{objHier==null && <span className="sh-hier-sep" style={{marginLeft:"auto",fontSize:"0.72rem"}}>pas d'historique N-1 pour ce jour</span>}
+</div>}
 {probaAuj!=null&&<AlerteBanner rain={rainAuj} proba={probaAuj} objJour={objJour} demain={false}/>}
 {probaDem!=null&&<AlerteBanner rain={rainDem} proba={probaDem} objJour={objJour} demain={true}/>}
 <div className="sh-grid sh-grid-kpi">
