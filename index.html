@@ -696,8 +696,8 @@ return result;
 }
 
 // ── UI ATOMS ──────────────────────────────────────────────────────────────────
-const Card = ({children,style={},className=""}) =>
-  <div className={"sh-card "+className} style={style}>{children}</div>;
+const Card = ({children,style={},className="",title,...rest}) =>
+  <div className={"sh-card "+className} style={style} title={title} {...rest}>{children}</div>;
 
 const SLbl = ({children,style={}}) =>
   <div className="sh-label" style={{marginBottom:10,...style}}>{children}</div>;
@@ -792,6 +792,26 @@ const CLOSED_WEEKDAYS = [1]; // Swing House : fermé le lundi
 const isClosedDay = d => CLOSED_WEEKDAYS.includes(d.getDay());
 const fullDayName = d => d.toLocaleDateString("fr-FR",{weekday:"long"}).replace(/^\w/,c=>c.toUpperCase());
 
+// Pour une date donnée, retourne la date N-1 ayant le même jour de la semaine,
+// la plus proche calendairement de la même date (shift max ±3 jours).
+// Exemple : aujourd'hui Mercredi 24/06/2026 → Mercredi 25/06/2025 (au lieu du
+// 24/06/2025 qui était un Mardi). Évite la comparaison vs jour fermé/différent.
+function sameWeekdayN1(date){
+  const target=date.getDay();
+  const d=new Date(date); d.setFullYear(d.getFullYear()-1);
+  const diff=(target-d.getDay()+7)%7;          // 0..6 (jours à avancer)
+  const shift=diff>3?diff-7:diff;              // borne à ±3 (préfère l'avant si égalité)
+  d.setDate(d.getDate()+shift);
+  return d;
+}
+// Lookup DJ_N1 sur la date N-1 du même weekday
+function caN1SameWeekday(date){
+  const d=sameWeekdayN1(date);
+  const mm=String(d.getMonth()+1).padStart(2,"0");
+  const dd=d.getDate()-1;
+  return {ca:DJ_N1[mm]?.[dd]??null, date:d, mm, dd};
+}
+
 // Indique si un jour (mois mm 1-12, jour 1-31) tombe dans la fenêtre demandée
 // par rapport à la date du jour (ramené à la même année calendaire que today)
 function inPeriod(mm,dayIdx,period,today){
@@ -841,8 +861,11 @@ function estimateCAByCondition(forecast, groups, rainPairs, snowPairs){
 
 function VueJour({wxToday,wxForecast,wxHist,ca_n,ca_n1,growth,wxDaily,period}){
 const today=new Date(),mIdx=today.getMonth(),mKey=MONTHS[mIdx],mm=MM[mIdx],dd=today.getDate()-1;
-const caJN1=DJ_N1[mm]?.[dd]??null;
-const objJour=caJN1!=null?Math.round(caJN1*(1+growth/100)):null;
+// Réf N-1 : même jour de la semaine, date la plus proche calendairement
+// (sinon objectif faussé quand le calendrier shift d'un weekday entre N et N-1)
+const refTodayN1=caN1SameWeekday(today);
+const caJN1=refTodayN1.ca;
+const objJour=caJN1!=null&&caJN1>0?Math.round(caJN1*(1+growth/100)):null;
 const caMN=ca_n[mKey]??0,caMN1=ca_n1[mKey]??0;
 const joursDansLeMois=new Date(today.getFullYear(),mIdx+1,0).getDate();
 const joursEcoules=dd+1;
@@ -866,7 +889,9 @@ const yest=new Date(today); yest.setDate(yest.getDate()-1);
 const ymm=String(yest.getMonth()+1).padStart(2,"0");
 const ydd=yest.getDate()-1;
 const caHier=DJ_N[ymm]?.[ydd]??null;
-const caHierN1=DJ_N1[ymm]?.[ydd]??null;
+// Réf N-1 d'hier : même weekday le plus proche (cohérent avec l'obj du jour)
+const refYestN1=caN1SameWeekday(yest);
+const caHierN1=refYestN1.ca;
 const objHier=caHierN1!=null&&caHierN1>0?Math.round(caHierN1*(1+growth/100)):null;
 const atteint=caHier!=null&&objHier!=null&&caHier>=objHier;
 const deltaObj=caHier!=null&&objHier!=null&&objHier>0?Math.round((caHier-objHier)/objHier*100):null;
@@ -892,7 +917,7 @@ return <div className="sh-stack">
       <span className="sh-hier-lbl">Hier · {yestLbl}</span>
       <span style={{marginLeft:"auto"}}>Fermé</span>
     </div>
-  : caHier!=null && <div className="sh-hier">
+  : caHier!=null && <div className="sh-hier" title={refYestN1?.date?`Objectif basé sur ${refYestN1.date.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} (N-1 même jour de la semaine, date la plus proche).`:undefined} style={{cursor:objHier!=null?"help":"default"}}>
       <span className="sh-hier-lbl">Hier · {yestLbl}</span>
       <span className="sh-hier-val" data-private="true">{fmt(caHier)}</span>
       {objHier!=null && <>
@@ -900,7 +925,7 @@ return <div className="sh-stack">
         <span className="sh-hier-obj">obj <span data-private="true">{fmt(objHier)}</span></span>
         <span className={"sh-pill "+(atteint?"sh-pill-pos":"sh-pill-neg")} style={{marginLeft:"auto"}}>{atteint?"✓ atteint":"✗ raté"} <span data-private="true">{deltaObj!=null?(deltaObj>=0?"+":"")+deltaObj+"%":""}</span></span>
       </>}
-      {objHier==null && <span className="sh-hier-sep" style={{marginLeft:"auto",fontSize:"0.72rem"}}>pas d'historique N-1 pour ce jour</span>}
+      {objHier==null && <span className="sh-hier-sep" style={{marginLeft:"auto",fontSize:"0.72rem"}}>pas d'historique N-1 pour ce jour de semaine</span>}
     </div>
 }
 {closedToday
@@ -918,8 +943,8 @@ return <div className="sh-stack">
   : probaDem!=null && <AlerteBanner rain={rainDem} proba={probaDem} objJour={objJour} demain={true}/>
 }
 <div className="sh-grid sh-grid-kpi">
-{[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même jour"},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1",stade:true},{label:periodLbl,n:periodN,n1:periodN1,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub,stade},i)=>(
-<Card key={i}>
+{[{label:"Objectif du jour",n:objJour,n1:caJN1,sub:"N-1 même weekday",tip:refTodayN1?.date?`Référence : ${refTodayN1.date.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"})} (même jour de la semaine, date la plus proche). Évite de comparer un mardi 2026 à un lundi 2025.`:undefined},{label:`CA ${mKey}`,n:caMN,n1:caMN1,sub:"N-1",stade:true},{label:periodLbl,n:periodN,n1:periodN1,sub:"N-1 même période"},{label:"Objectif annuel",n:totalN,n1:objAnnuel,sub:"objectif"}].map(({label,n,n1,sub,stade,tip},i)=>(
+<Card key={i} style={tip?{cursor:"help"}:undefined} title={tip||undefined}>
 <div className="sh-label" style={{marginBottom:6}}>{label}</div>
 <div className="sh-value" style={{marginBottom:4}}>{fmt(n)}</div>
 <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
