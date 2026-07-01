@@ -785,7 +785,7 @@ function sumLastNDays(dj,today,n){
   }
   return total;
 }
-const PERIOD_LABELS={month:"Mois en cours","7d":"7 derniers jours","30d":"30 derniers jours",ytd:"YTD"};
+const PERIOD_LABELS={month:"Mois en cours",prev_month:"Mois précédent","7d":"7 derniers jours","30d":"30 derniers jours",ytd:"YTD"};
 
 // Jours de fermeture hebdomadaire (0=Dim, 1=Lun, ..., 6=Sam)
 const CLOSED_WEEKDAYS = [1]; // Swing House : fermé le lundi
@@ -818,6 +818,11 @@ function inPeriod(mm,dayIdx,period,today){
   if(!period||period==="ytd") return true;
   const m=parseInt(mm,10)-1;
   if(period==="month") return m===today.getMonth();
+  if(period==="prev_month"){
+    // "Mois précédent" = le mois calendaire juste avant celui de today (peut être décembre de N-1)
+    const prev=new Date(today.getFullYear(),today.getMonth()-1,1);
+    return m===prev.getMonth();
+  }
   const n=period==="7d"?7:30;
   // Compare sur le même millésime que today pour gérer N et N-1 uniformément
   const d=new Date(today.getFullYear(),m,dayIdx+1);
@@ -831,6 +836,11 @@ function filterSimuByPeriod(rows,period,today){
   if(!period||period==="ytd") return rows;
   if(period==="month"){
     const mm=String(today.getMonth()+1).padStart(2,"0");
+    return rows.filter(r=>r.d.endsWith("/"+mm));
+  }
+  if(period==="prev_month"){
+    const prev=new Date(today.getFullYear(),today.getMonth()-1,1);
+    const mm=String(prev.getMonth()+1).padStart(2,"0");
     return rows.filter(r=>r.d.endsWith("/"+mm));
   }
   const n=period==="7d"?7:30;
@@ -881,6 +891,13 @@ const objAnnuel=MONTHS.reduce((a,m)=>a+(ca_n1[m]?Math.round(ca_n1[m]*(1+growth/1
 // ─── Calcul fenêtre sélectionnée (Période globale) ─────────────────────────
 let periodN, periodN1, periodLbl=PERIOD_LABELS[period]||"YTD";
 if(period==="month"){ periodN=caMN; periodN1=caN1MemeStade; }
+else if(period==="prev_month"){
+  const prev=new Date(today.getFullYear(),today.getMonth()-1,1);
+  const pmm=String(prev.getMonth()+1).padStart(2,"0");
+  const pmKey=MONTHS[prev.getMonth()];
+  periodN=(DJ_N[pmm]||[]).reduce((a,v)=>a+(v||0),0);
+  periodN1=ca_n1[pmKey]||0;
+}
 else if(period==="ytd"){ periodN=totalN; periodN1=totalN1S; }
 else { const n=period==="7d"?7:30; periodN=sumLastNDays(DJ_N,today,n); periodN1=sumLastNDays(DJ_N1,today,n); }
 
@@ -1864,6 +1881,7 @@ return <div style={{minHeight:"100vh",background:"var(--bg)",color:"var(--ink)"}
 <div className="sh-meta">
 <select value={period} onChange={e=>setPeriod(e.target.value)} className="sh-select" style={{fontSize:12,padding:"0.35rem 0.55rem",minHeight:34}} aria-label="Période d'analyse">
 <option value="month">Mois en cours</option>
+<option value="prev_month">Mois précédent</option>
 <option value="7d">7 derniers jours</option>
 <option value="30d">30 derniers jours</option>
 <option value="ytd">YTD</option>
