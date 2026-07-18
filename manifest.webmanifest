@@ -1,0 +1,15 @@
+{
+  "name": "Swing House · Pilotage",
+  "short_name": "SH Pilotage",
+  "description": "Pilotage temps réel du club Swing House Chamonix",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#111111",
+  "theme_color": "#111111",
+  "icons": [
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}
