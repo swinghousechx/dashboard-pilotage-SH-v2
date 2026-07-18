@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="geometricPrecision">
-  <rect width="32" height="32" rx="7" fill="oklch(0.55 0.14 152)"/>
-  <circle cx="16" cy="12" r="5" fill="#ffffff"/>
-  <path d="M9 18 L23 18 L16 27 Z" fill="#ffffff"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <rect width="32" height="32" rx="6" fill="#2f7d4a"/>
+  <rect x="7"  y="18" width="4" height="8"  fill="#ffffff"/>
+  <rect x="14" y="12" width="4" height="14" fill="#ffffff"/>
+  <rect x="21" y="6"  width="4" height="20" fill="#ffffff"/>
 </svg>
